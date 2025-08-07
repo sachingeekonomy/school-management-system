@@ -13,13 +13,73 @@ const LoginPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const role = user?.publicMetadata.role;
+    if (!isLoaded) return;
 
-    if (role) {
-      router.push(`/${role}`);
+    if (isSignedIn && user) {
+      console.log('=== DEBUG INFO ===');
+      console.log('User object:', user);
+      console.log('User ID:', user.id);
+      console.log('User username:', user.username);
+      console.log('User publicMetadata:', user.publicMetadata);
+      console.log('==================');
+
+      // Wait a bit for session to fully load
+      const redirectWithRole = () => {
+        // First try to get role from publicMetadata
+        let role = user?.publicMetadata?.role;
+        
+        // If no role in metadata, determine from username as fallback
+        if (!role) {
+          const username = user?.username?.toLowerCase();
+          role = 'admin'; // default
+          
+          if (username?.includes('teacher')) {
+            role = 'teacher';
+          } else if (username?.includes('student')) {
+            role = 'student';
+          } else if (username?.includes('parent')) {
+            role = 'parent';
+          }
+        }
+
+        console.log('User role from metadata:', user?.publicMetadata?.role);
+        console.log('Determined role:', role);
+        console.log('Redirecting to:', `/${role}`);
+        router.push(`/${role}`);
+      };
+
+      // Try immediate redirect
+      redirectWithRole();
+      
+      // Also try after a short delay to ensure session is fully loaded
+      setTimeout(redirectWithRole, 1000);
     }
-  }, [user, router]);
+  }, [user, router, isSignedIn, isLoaded]);
 
+  // Show loading while checking authentication
+  if (!isLoaded) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-lamaSkyLight">
+        <div className="bg-white p-8 rounded-md shadow-2xl">
+          <h1 className="text-xl font-bold text-center">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is signed in, show loading while redirecting
+  if (isSignedIn) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-lamaSkyLight">
+        <div className="bg-white p-8 rounded-md shadow-2xl">
+          <h1 className="text-xl font-bold text-center">Loading...</h1>
+          <p className="text-gray-500 text-center mt-2">Redirecting to your dashboard</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show sign-in form if not signed in
   return (
     <div className="h-screen flex items-center justify-center bg-lamaSkyLight">
       <SignIn.Root>

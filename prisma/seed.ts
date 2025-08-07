@@ -126,7 +126,7 @@ async function main() {
         classId: (i % 6) + 1, 
         birthday: new Date(new Date().setFullYear(new Date().getFullYear() - 10)),
       },
-    });
+    }); 
   }
 
   // EXAM

@@ -12,13 +12,38 @@ console.log(matchers);
 export default clerkMiddleware((auth, req) => {
   // if (isProtectedRoute(req)) auth().protect()
 
-  const { sessionClaims } = auth();
+  const { sessionClaims, userId } = auth();
 
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  // Try to get role from session claims
+  let role = (sessionClaims?.metadata as { role?: string })?.role;
+
+  // If no role in session claims, try to get from user data
+  if (!role && userId) {
+    // For now, we'll use a fallback based on the route
+    // This is a temporary fix until we can properly sync session claims
+    const path = req.nextUrl.pathname;
+    if (path.startsWith('/admin')) {
+      role = 'admin';
+    } else if (path.startsWith('/teacher')) {
+      role = 'teacher';
+    } else if (path.startsWith('/student')) {
+      role = 'student';
+    } else if (path.startsWith('/parent')) {
+      role = 'parent';
+    }
+  }
+
+  // If role is still undefined, redirect to admin as default
+  const userRole = role || 'admin';
+
+  console.log('Middleware - Path:', req.nextUrl.pathname);
+  console.log('Middleware - Session Claims:', sessionClaims);
+  console.log('Middleware - User Role:', userRole);
 
   for (const { matcher, allowedRoles } of matchers) {
-    if (matcher(req) && !allowedRoles.includes(role!)) {
-      return NextResponse.redirect(new URL(`/${role}`, req.url));
+    if (matcher(req) && !allowedRoles.includes(userRole)) {
+      console.log('Middleware - Redirecting to:', `/${userRole}`);
+      return NextResponse.redirect(new URL(`/${userRole}`, req.url));
     }
   }
 });
