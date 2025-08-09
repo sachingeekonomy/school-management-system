@@ -9,11 +9,14 @@ const EventCalendarContainer = async ({
 }) => {
   const { date } = searchParams;
   return (
-    <div className="bg-white p-4 rounded-md">
-      <EventCalendar />
+    <div className="rounded-md">
+      {/* Calendar with dark theme wrapper */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+        <EventCalendar />
+      </div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold my-4">Events</h1>
-        <Image src="/moreDark.png" alt="" width={20} height={20} />
+        <h1 className="text-xl font-semibold my-4 text-white">Events</h1>
+        <Image src="/moreDark.png" alt="" width={20} height={20} className="filter invert" />
       </div>
       <div className="flex flex-col gap-4">
         <EventList dateParam={date} />

@@ -58,10 +58,10 @@ const AttendanceChartContainer = async () => {
   }));
 
   return (
-    <div className="bg-white rounded-lg p-4 h-full">
+    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 h-full border border-white/20">
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold">Attendance</h1>
-        <Image src="/moreDark.png" alt="" width={20} height={20} />
+        <h1 className="text-lg font-semibold text-white">Attendance</h1>
+        <Image src="/moreDark.png" alt="" width={20} height={20} className="filter invert" />
       </div>
       <AttendanceChart data={data}/>
     </div>

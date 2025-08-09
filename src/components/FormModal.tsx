@@ -264,14 +264,21 @@ const FormModal = ({
         )}
       </button>
       {open && (
-        <div className="w-screen h-screen absolute left-0 top-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-md relative w-[90%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%]">
-            <Form />
-            <div
-              className="absolute top-4 right-4 cursor-pointer"
-              onClick={() => setOpen(false)}
-            >
-              <Image src="/close.png" alt="" width={14} height={14} />
+        <div className="w-screen h-screen absolute left-0 top-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-md relative w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-lg font-semibold">
+                {type === "create" ? `Create ${table}` : type === "update" ? `Update ${table}` : `Delete ${table}`}
+              </h2>
+              <div
+                className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                onClick={() => setOpen(false)}
+              >
+                <Image src="/close.png" alt="" width={14} height={14} />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <Form />
             </div>
           </div>
         </div>

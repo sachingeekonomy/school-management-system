@@ -88,13 +88,7 @@ const StudentForm = ({
         <h1 className="text-xl font-semibold">
           {type === "create" ? "Create a new student" : "Update the student"}
         </h1>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-        >
-          <Image src="/close.png" alt="Close" width={16} height={16} />
-        </button>
+     
       </div>
 
       <div className="space-y-6">
@@ -136,7 +130,7 @@ const StudentForm = ({
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-lamaSky file:text-white hover:file:bg-lamaSky/90 file:cursor-pointer"
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-400  file:text-white hover:file:bg-lamaSky/90 file:cursor-pointer"
                 />
               </div>
               {img && (
@@ -334,7 +328,7 @@ const StudentForm = ({
         </button>
         <button 
           type="submit" 
-          className="px-6 py-2 bg-lamaSky text-white rounded-md hover:bg-lamaSky/90 transition-colors font-medium"
+          className="px-6 py-2 bg-blue-400 text-white rounded-md hover:bg-lamaSky/90 transition-colors font-medium"
         >
           {type === "create" ? "Create Student" : "Update Student"}
         </button>

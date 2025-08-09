@@ -1,4 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { getUserRoleSync } from "@/lib/getUserRole";
 import MenuClient from "./MenuClient";
 
 const menuItems = [
@@ -117,8 +118,11 @@ const menuItems = [
 ];
 
 const Menu = async () => {
+  // Use the robust role detection system
+  const role = await getUserRoleSync();
+  
+  // Get user data for display
   const user = await currentUser();
-  const role = user?.publicMetadata.role as string;
   
   // Extract only the necessary user data as plain objects
   const userData = {
@@ -126,6 +130,8 @@ const Menu = async () => {
     email: user?.emailAddresses[0]?.emailAddress || "",
     initial: user?.firstName?.charAt(0) || user?.emailAddresses[0]?.emailAddress?.charAt(0) || "U"
   };
+  
+  console.log("Menu component - User role determined:", role);
   
   return <MenuClient menuItems={menuItems} role={role} userData={userData} />;
 };

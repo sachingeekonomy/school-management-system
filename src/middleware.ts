@@ -15,7 +15,7 @@ export default clerkMiddleware((auth, req) => {
   const { sessionClaims, userId } = auth();
 
   // Try to get role from session claims
-  let role = (sessionClaims?.metadata as { role?: string })?.role;
+  let role = (sessionClaims?.publicMetadata as { role?: string })?.role;
 
   // If no role in session claims, try to get from user data
   if (!role && userId) {

@@ -2,11 +2,13 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import SortDropdown from "@/components/SortDropdown";
+import FilterDropdown from "@/components/FilterDropdown";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Class, Exam, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
-import { auth } from "@clerk/nextjs/server";
+import { getUserRoleSync } from "@/lib/getUserRole";
 
 type ExamList = Exam & {
   lesson: {
@@ -22,20 +24,13 @@ const ExamListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
 
-const { userId, sessionClaims } = auth();
-const role = (sessionClaims?.metadata as { role?: string })?.role;
-const currentUserId = userId;
+// Get user role using the new robust function
+const role = await getUserRoleSync();
 
-// Debug logging
-console.log("Session claims:", sessionClaims);
-console.log("Role from metadata:", role);
+// Still need userId for role-based filtering
+const { userId: currentUserId } = await import("@clerk/nextjs/server").then(m => m.auth());
 
-// Fallback: if role is undefined, try to get from user data
-let finalRole = role;
-if (!finalRole) {
-  // Default to admin for now since we don't have a specific admin table
-  finalRole = 'admin';
-}
+console.log("User role determined:", role);
 
 
 const columns = [
@@ -57,7 +52,7 @@ const columns = [
     accessor: "date",
     className: "hidden md:table-cell",
   },
-  ...(finalRole === "admin" || finalRole === "teacher"
+  ...(role === "admin" || role === "teacher"
     ? [
         {
           header: "Actions",
@@ -82,7 +77,7 @@ const renderRow = (item: ExamList) => (
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {(finalRole === "admin" || finalRole === "teacher") && (
+        {(role === "admin" || role === "teacher") && (
           <>
             <FormContainer table="exam" type="update" data={item} />
             <FormContainer table="exam" type="delete" id={item.id} />
@@ -130,7 +125,7 @@ const renderRow = (item: ExamList) => (
 
   // ROLE CONDITIONS
 
-  switch (finalRole) {
+  switch (role) {
     case "admin":
       break;
     case "teacher":
@@ -178,20 +173,21 @@ const renderRow = (item: ExamList) => (
   ]);
 
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Exams</h1>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="" width={14} height={14} />
-            </button>
-            {(finalRole === "admin" || finalRole === "teacher") ? (
+            <FilterDropdown groups={[]} />
+            <SortDropdown options={[
+              { value: "title-asc", label: "Title (A-Z)", field: "title", direction: "asc" },
+              { value: "title-desc", label: "Title (Z-A)", field: "title", direction: "desc" },
+              { value: "startTime-asc", label: "Date (Early-Late)", field: "startTime", direction: "asc" },
+              { value: "startTime-desc", label: "Date (Late-Early)", field: "startTime", direction: "desc" }
+            ]} />
+            {(role === "admin" || role === "teacher") ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="exam" type="create" />
                 <span className="text-sm font-medium text-green-600">Click + to add exam</span>

@@ -2,11 +2,13 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import SortDropdown from "@/components/SortDropdown";
+import FilterDropdown from "@/components/FilterDropdown";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Class, Prisma, Teacher } from "@prisma/client";
 import Image from "next/image";
-import { auth } from "@clerk/nextjs/server";
+import { getUserRoleSync } from "@/lib/getUserRole";
 
 type ClassList = Class & { supervisor: Teacher; grade: { level: number } };
 
@@ -16,19 +18,10 @@ const ClassListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
 
-const { sessionClaims } = auth();
-const role = (sessionClaims?.metadata as { role?: string })?.role;
+// Get user role using the new robust function
+const role = await getUserRoleSync();
 
-// Debug logging
-console.log("Session claims:", sessionClaims);
-console.log("Role from metadata:", role);
-
-// Fallback: if role is undefined, try to get from user data
-let finalRole = role;
-if (!finalRole) {
-  // Default to admin for now since we don't have a specific admin table
-  finalRole = 'admin';
-}
+console.log("User role determined:", role);
 
 
 const columns = [
@@ -51,7 +44,7 @@ const columns = [
     accessor: "supervisor",
     className: "hidden md:table-cell",
   },
-  ...(finalRole === "admin"
+  ...(role === "admin"
     ? [
         {
           header: "Actions",
@@ -74,7 +67,7 @@ const renderRow = (item: ClassList) => (
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {finalRole === "admin" && (
+        {role === "admin" && (
           <>
             <FormContainer table="class" type="update" data={item} />
             <FormContainer table="class" type="delete" id={item.id} />
@@ -93,12 +86,46 @@ const renderRow = (item: ClassList) => (
 
   const query: Prisma.ClassWhereInput = {};
 
+  // Handle sorting
+  let orderBy: any = { id: 'asc' }; // Default sorting
+  
+  const { sort, order } = queryParams;
+  if (sort && order) {
+    switch (sort) {
+      case 'name':
+        orderBy = { name: order };
+        break;
+      case 'capacity':
+        orderBy = { capacity: order };
+        break;
+      case 'grade':
+        orderBy = { grade: { level: order } };
+        break;
+      default:
+        orderBy = { id: order };
+        break;
+    }
+  }
+
+  // Handle filters and search
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
         switch (key) {
           case "supervisorId":
             query.supervisorId = value;
+            break;
+          case "gradeId":
+            query.gradeId = parseInt(value);
+            break;
+          case "capacityRange":
+            if (value === "small") {
+              query.capacity = { lte: 20 };
+            } else if (value === "medium") {
+              query.capacity = { gte: 21, lte: 30 };
+            } else if (value === "large") {
+              query.capacity = { gte: 31 };
+            }
             break;
           case "search":
             query.OR = [
@@ -114,21 +141,74 @@ const renderRow = (item: ClassList) => (
     }
   }
 
-  const [data, count] = await prisma.$transaction([
+  const [data, count, teachers, grades] = await prisma.$transaction([
     prisma.class.findMany({
       where: query,
       include: {
         supervisor: true,
         grade: true,
+        _count: {
+          select: {
+            students: true,
+          },
+        },
       },
+      orderBy,
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.class.count({ where: query }),
+    prisma.teacher.findMany({
+      orderBy: { name: 'asc' },
+    }),
+    prisma.grade.findMany({
+      orderBy: { level: 'asc' },
+    }),
   ]);
 
+  // Sort options for classes
+  const sortOptions = [
+    { value: "name-asc", label: "Name (A-Z)", field: "name", direction: "asc" as const },
+    { value: "name-desc", label: "Name (Z-A)", field: "name", direction: "desc" as const },
+    { value: "capacity-asc", label: "Capacity (Low to High)", field: "capacity", direction: "asc" as const },
+    { value: "capacity-desc", label: "Capacity (High to Low)", field: "capacity", direction: "desc" as const },
+    { value: "grade-asc", label: "Grade (Low to High)", field: "grade", direction: "asc" as const },
+    { value: "grade-desc", label: "Grade (High to Low)", field: "grade", direction: "desc" as const },
+  ];
+
+  // Filter options for classes
+  const filterGroups = [
+    {
+      title: "Grade",
+      param: "gradeId",
+      options: grades.map(grade => ({
+        value: grade.id.toString(),
+        label: `Grade ${grade.level}`,
+        param: "gradeId"
+      }))
+    },
+    {
+      title: "Supervisor",
+      param: "supervisorId",
+      options: teachers.map(teacher => ({
+        value: teacher.id,
+        label: `${teacher.name} ${teacher.surname}`,
+        param: "supervisorId"
+      }))
+    },
+    {
+      title: "Capacity Range",
+      param: "capacityRange",
+      options: [
+        { value: "small", label: "Small (≤20)", param: "capacityRange" },
+        { value: "medium", label: "Medium (21-30)", param: "capacityRange" },
+        { value: "large", label: "Large (≥31)", param: "capacityRange" }
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Classes</h1>
@@ -136,13 +216,9 @@ const renderRow = (item: ClassList) => (
           <TableSearch />
           
           <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="" width={14} height={14} />
-            </button>
-            {finalRole === "admin" ? (
+            <FilterDropdown groups={filterGroups} />
+            <SortDropdown options={sortOptions} />
+            {role === "admin" ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="class" type="create" />
                 <span className="text-sm font-medium text-green-600">Click + to add class</span>

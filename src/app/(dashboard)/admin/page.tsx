@@ -50,9 +50,9 @@ const AdminPage = async ({
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+    <div className="min-h-screen bg-transparent relative">
       {/* Enhanced Header Section with Stats */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-lamaSky via-blue-600 to-indigo-600 text-white">
+      <div className="relative z-10 overflow-hidden bg-gradient-to-r from-lamaSky via-blue-600 to-indigo-600 text-white">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-48 translate-x-48"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-32 -translate-x-32"></div>
@@ -125,38 +125,46 @@ const AdminPage = async ({
       </div>
 
       {/* Main Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
         <div className="flex gap-10 flex-col lg:flex-row">
           
           {/* LEFT SIDE - Main Content */}
           <div className="w-full lg:w-2/3 flex flex-col gap-10">
             
             {/* Enhanced User Cards Section */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 hover:shadow-2xl transition-all duration-500">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gradient-to-r from-lamaSky to-blue-600 rounded-full animate-pulse"></div>
-                  <h2 className="text-2xl font-bold text-gray-800">User Statistics</h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    Live Data
+            <div className="group relative overflow-hidden bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+              <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-pulse"></div>
+              
+              <div className="relative p-8 text-white">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-white/80 rounded-full animate-pulse shadow-lg"></div>
+                    <h2 className="text-2xl font-bold text-white">User Statistics</h2>
                   </div>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-blue-100 bg-white/10 px-4 py-2 rounded-full font-medium border border-white/20">
+                      Live Data
+                    </div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="transform hover:scale-105 transition-all duration-300">
-                  <UserCard type="admin" />
-                </div>
-                <div className="transform hover:scale-105 transition-all duration-300">
-                  <UserCard type="teacher" />
-                </div>
-                <div className="transform hover:scale-105 transition-all duration-300">
-                  <UserCard type="student" />
-                </div>
-                <div className="transform hover:scale-105 transition-all duration-300">
-                  <UserCard type="parent" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="transform hover:scale-105 transition-all duration-300">
+                    <UserCard type="admin" />
+                  </div>
+                  <div className="transform hover:scale-105 transition-all duration-300">
+                    <UserCard type="teacher" />
+                  </div>
+                  <div className="transform hover:scale-105 transition-all duration-300">
+                    <UserCard type="student" />
+                  </div>
+                  <div className="transform hover:scale-105 transition-all duration-300">
+                    <UserCard type="parent" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -164,36 +172,60 @@ const AdminPage = async ({
             {/* Enhanced Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               {/* Count Chart */}
-              <div className="lg:col-span-1 group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 hover:shadow-2xl transition-all duration-500">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-3 h-3 bg-gradient-to-r from-lamaPurple to-purple-600 rounded-full"></div>
-                  <h3 className="text-xl font-bold text-gray-800">Overview</h3>
-                </div>
-                <div className="h-[400px] transform group-hover:scale-[1.02] transition-transform duration-300">
-                  <CountChartContainer />
+              <div className="lg:col-span-1 group relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-600 to-rose-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-24 translate-x-24"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
+                <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white/5 rounded-full animate-pulse"></div>
+                
+                <div className="relative p-8 text-white">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-xl font-bold text-white">Overview</h3>
+                  </div>
+                  <div className="h-[400px] transform group-hover:scale-[1.02] transition-transform duration-300">
+                    <CountChartContainer />
+                  </div>
                 </div>
               </div>
 
               {/* Attendance Chart */}
-              <div className="lg:col-span-2 group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 hover:shadow-2xl transition-all duration-500">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-3 h-3 bg-gradient-to-r from-lamaYellow to-yellow-500 rounded-full"></div>
-                  <h3 className="text-xl font-bold text-gray-800">Attendance Analytics</h3>
-                </div>
-                <div className="h-[400px] transform group-hover:scale-[1.02] transition-transform duration-300">
-                  <AttendanceChartContainer />
+              <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+                <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-pulse"></div>
+                
+                <div className="relative p-8 text-white">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-xl font-bold text-white">Attendance Analytics</h3>
+                  </div>
+                  <div className="h-[400px] transform group-hover:scale-[1.02] transition-transform duration-300">
+                    <AttendanceChartContainer />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Enhanced Finance Chart Section */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 hover:shadow-2xl transition-all duration-500">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
-                <h3 className="text-xl font-bold text-gray-800">Financial Overview</h3>
-              </div>
-              <div className="h-[450px] transform group-hover:scale-[1.02] transition-transform duration-300">
-                <FinanceChart />
+            <div className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -translate-y-36 translate-x-36"></div>
+              <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-28 -translate-x-28"></div>
+              <div className="absolute top-1/2 right-1/3 w-28 h-28 bg-white/5 rounded-full animate-pulse"></div>
+              
+              <div className="relative p-8 text-white">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                  <h3 className="text-xl font-bold text-white">Financial Overview</h3>
+                </div>
+                <div className="h-[450px] transform group-hover:scale-[1.02] transition-transform duration-300">
+                  <FinanceChart />
+                </div>
               </div>
             </div>
           </div>
@@ -202,24 +234,38 @@ const AdminPage = async ({
           <div className="w-full lg:w-1/3 flex flex-col gap-10">
             
             {/* Enhanced Events Calendar */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 hover:shadow-2xl transition-all duration-500">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-3 h-3 bg-gradient-to-r from-lamaSky to-blue-600 rounded-full"></div>
-                <h3 className="text-xl font-bold text-gray-800">Upcoming Events</h3>
-              </div>
-              <div className="transform group-hover:scale-[1.02] transition-transform duration-300">
-                <EventCalendarContainer searchParams={searchParams} />
+            <div className="group relative overflow-hidden bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              {/* Subtle Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/10"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-white/3 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
+              
+              <div className="relative p-8 text-white">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                  <h3 className="text-xl font-bold text-white">Upcoming Events</h3>
+                </div>
+                <div className="transform group-hover:scale-[1.02] transition-transform duration-300">
+                  <EventCalendarContainer searchParams={searchParams} />
+                </div>
               </div>
             </div>
 
             {/* Enhanced Announcements */}
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 hover:shadow-2xl transition-all duration-500">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-full"></div>
-                <h3 className="text-xl font-bold text-gray-800">Recent Announcements</h3>
-              </div>
-              <div className="transform group-hover:scale-[1.02] transition-transform duration-300">
-                <Announcements />
+            <div className="group relative overflow-hidden bg-gradient-to-r from-orange-500 via-red-600 to-pink-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              {/* Subtle Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/10"></div>
+              <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-br from-white/4 to-transparent rounded-full -translate-y-18 translate-x-18"></div>
+              <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-white/3 to-transparent rounded-full translate-y-14 -translate-x-14"></div>
+              
+                              <div className="relative p-8 text-white">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-xl font-bold text-white">Recent Announcements</h3>
+                  </div>
+                <div className="transform group-hover:scale-[1.02] transition-transform duration-300">
+                  <Announcements />
+                </div>
               </div>
             </div>
           </div>

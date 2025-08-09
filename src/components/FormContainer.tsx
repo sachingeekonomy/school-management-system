@@ -25,7 +25,7 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
   let relatedData = {};
 
   const { userId, sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
   const currentUserId = userId;
   
   // Fallback role detection - if role is not detected from session, try to get from user metadata

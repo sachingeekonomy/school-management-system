@@ -77,10 +77,10 @@ const data = [
 
 const FinanceChart = () => {
   return (
-    <div className="bg-white rounded-xl w-full h-full p-4">
+    <div className="bg-white/10 backdrop-blur-sm rounded-xl w-full h-full p-4 border border-white/20">
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold">Finance</h1>
-        <Image src="/moreDark.png" alt="" width={20} height={20} />
+        <h1 className="text-lg font-semibold text-white">Finance</h1>
+        <Image src="/moreDark.png" alt="" width={20} height={20} className="filter invert" />
       </div>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart
@@ -94,28 +94,35 @@ const FinanceChart = () => {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.2)" />
           <XAxis
             dataKey="name"
             axisLine={false}
-            tick={{ fill: "#d1d5db" }}
+            tick={{ fill: "rgba(255, 255, 255, 0.8)" }}
             tickLine={false}
             tickMargin={10}
           />
-          <YAxis axisLine={false} tick={{ fill: "#d1d5db" }} tickLine={false}  tickMargin={20}/>
-          <Tooltip />
+          <YAxis axisLine={false} tick={{ fill: "rgba(255, 255, 255, 0.8)" }} tickLine={false}  tickMargin={20}/>
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: "rgba(0, 0, 0, 0.8)", 
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              borderRadius: "8px",
+              color: "white"
+            }}
+          />
           <Legend
             align="center"
             verticalAlign="top"
-            wrapperStyle={{ paddingTop: "10px", paddingBottom: "30px" }}
+            wrapperStyle={{ paddingTop: "10px", paddingBottom: "30px", color: "white" }}
           />
           <Line
             type="monotone"
             dataKey="income"
-            stroke="#C3EBFA"
+            stroke="#22D3EE"
             strokeWidth={5}
           />
-          <Line type="monotone" dataKey="expense" stroke="#CFCEFF" strokeWidth={5}/>
+          <Line type="monotone" dataKey="expense" stroke="#F59E0B" strokeWidth={5}/>
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -2,6 +2,8 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import SortDropdown from "@/components/SortDropdown";
+import FilterDropdown from "@/components/FilterDropdown";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Prisma, Subject, Teacher } from "@prisma/client";
@@ -16,7 +18,7 @@ const SubjectListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
   const { sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
 
   // Debug logging
   console.log("Session claims:", sessionClaims);
@@ -79,10 +81,33 @@ const SubjectListPage = async ({
 
   const query: Prisma.SubjectWhereInput = {};
 
+  // Handle sorting
+  let orderBy: any = { id: 'asc' }; // Default sorting
+  
+  const { sort, order } = queryParams;
+  if (sort && order) {
+    switch (sort) {
+      case 'name':
+        orderBy = { name: order };
+        break;
+      default:
+        orderBy = { id: order };
+        break;
+    }
+  }
+
+  // Handle filters and search
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
         switch (key) {
+          case "teacherCount":
+            if (value === "0") {
+              query.teachers = { none: {} };
+            } else if (value === "1") {
+              query.teachers = { some: {} };
+            }
+            break;
           case "search":
             query.OR = [
               { name: { contains: value, mode: "insensitive" } },
@@ -102,27 +127,48 @@ const SubjectListPage = async ({
       where: query,
       include: {
         teachers: true,
+        _count: {
+          select: {
+            teachers: true,
+            lessons: true,
+          },
+        },
       },
+      orderBy,
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.subject.count({ where: query }),
   ]);
 
+  // Sort options for subjects
+  const sortOptions = [
+    { value: "name-asc", label: "Name (A-Z)", field: "name", direction: "asc" as const },
+    { value: "name-desc", label: "Name (Z-A)", field: "name", direction: "desc" as const },
+  ];
+
+  // Filter options for subjects
+  const filterGroups = [
+    {
+      title: "Teacher Count",
+      param: "teacherCount",
+      options: [
+        { value: "0", label: "No Teachers", param: "teacherCount" },
+        { value: "1", label: "Has Teachers", param: "teacherCount" }
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Subjects</h1>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="" width={14} height={14} />
-            </button>
+            <FilterDropdown groups={filterGroups} />
+            <SortDropdown options={sortOptions} />
             {finalRole === "admin" ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="subject" type="create" />

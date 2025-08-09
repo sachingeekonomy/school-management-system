@@ -55,13 +55,13 @@ const ParentForm = ({
   }, [state, router, type, setOpen]);
 
   return (
-    <form className="flex flex-col gap-8" onSubmit={onSubmit}>
-      <h1 className="text-xl font-semibold">
+    <form className="flex flex-col gap-8 p-4 " onSubmit={onSubmit}>
+      <h1 className="text-xl font-semibold mb-2">
         {type === "create" ? "Create a new parent" : "Update the parent"}
       </h1>
 
-      <div className="flex flex-col gap-6">
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             label="First Name"
             name="name"
@@ -88,7 +88,7 @@ const ParentForm = ({
           )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             label="Email"
             name="email"
@@ -106,21 +106,19 @@ const ParentForm = ({
           />
         </div>
 
-        <div className="w-full">
-          <InputField
-            label="Address"
-            name="address"
-            defaultValue={data?.address}
-            register={register}
-            error={errors?.address}
-          />
-        </div>
+        <InputField
+          label="Address"
+          name="address"
+          defaultValue={data?.address}
+          register={register}
+          error={errors?.address}
+        />
       </div>
       
       {state.error && (
-        <span className="text-red-500">Something went wrong!</span>
+        <span className="text-red-500 text-sm">Something went wrong!</span>
       )}
-      <button className="bg-lamaSky text-white p-3 rounded-md font-medium hover:bg-lamaSky/90 transition-colors">
+      <button className="bg-lamaSky text-white p-3 rounded-md font-medium hover:bg-lamaSky/90 transition-colors mt-2">
         {type === "create" ? "Create Parent" : "Update Parent"}
       </button>
     </form>

@@ -2,11 +2,13 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import SortDropdown from "@/components/SortDropdown";
+import FilterDropdown from "@/components/FilterDropdown";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Class, Event, Prisma } from "@prisma/client";
 import Image from "next/image";
-import { auth } from "@clerk/nextjs/server";
+import { getUserRoleSync } from "@/lib/getUserRole";
 
 type EventList = Event & { class: Class & { grade: { level: number } } };
 
@@ -16,43 +18,13 @@ const EventListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
 
-  const { userId, sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  const currentUserId = userId;
+  // Get user role using the new robust function
+  const role = await getUserRoleSync();
+  
+  // Still need userId for role-based filtering
+  const { userId: currentUserId } = await import("@clerk/nextjs/server").then(m => m.auth());
 
-  // Debug logging for role detection
-  console.log("Session claims:", sessionClaims);
-  console.log("Detected role:", role);
-  console.log("User ID:", currentUserId);
-
-  // Fallback role detection - if role is not detected from session, try to get from user metadata
-  let finalRole = role;
-  if (!finalRole && currentUserId) {
-    try {
-      const user = await prisma.teacher.findUnique({
-        where: { id: currentUserId },
-        select: { id: true }
-      });
-      if (user) {
-        finalRole = "teacher";
-        console.log("Fallback: User found in teachers table, role set to teacher");
-      } else {
-        const adminUser = await prisma.student.findUnique({
-          where: { id: currentUserId },
-          select: { id: true }
-        });
-        if (!adminUser) {
-          finalRole = "admin";
-          console.log("Fallback: User not found in teachers/students, role set to admin");
-        }
-      }
-    } catch (error) {
-      console.error("Error in fallback role detection:", error);
-      finalRole = "admin"; // Default to admin if there's an error
-    }
-  }
-
-  console.log("Final role:", finalRole);
+  console.log("User role determined:", role);
 
   const columns = [
     {
@@ -78,7 +50,7 @@ const EventListPage = async ({
       accessor: "endTime",
       className: "hidden md:table-cell",
     },
-    ...(finalRole === "admin"
+    ...(role === "admin"
       ? [
           {
             header: "Actions",
@@ -137,7 +109,7 @@ const EventListPage = async ({
       </td>
       <td>
         <div className="flex items-center gap-2">
-          {finalRole === "admin" && (
+          {role === "admin" && (
             <>
               <FormContainer table="event" type="update" data={item} />
               <FormContainer table="event" type="delete" id={item.id} />
@@ -185,7 +157,7 @@ const EventListPage = async ({
   query.OR = [
     { classId: null },
     {
-      class: roleConditions[finalRole as keyof typeof roleConditions] || {},
+      class: roleConditions[role as keyof typeof roleConditions] || {},
     },
   ];
 
@@ -219,7 +191,7 @@ const EventListPage = async ({
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {finalRole === "admin" ? (
+            {role === "admin" ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="event" type="create" />
                 <span className="text-sm font-medium text-green-600">Click + to add event</span>

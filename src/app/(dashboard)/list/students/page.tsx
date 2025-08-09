@@ -2,6 +2,8 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import SortDropdown from "@/components/SortDropdown";
+import FilterDropdown from "@/components/FilterDropdown";
 
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
@@ -19,7 +21,7 @@ const StudentListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
   const { sessionClaims } = auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
 
   // Debug logging
   console.log("Session claims:", sessionClaims);
@@ -114,6 +116,34 @@ const StudentListPage = async ({
 
   const query: Prisma.StudentWhereInput = {};
 
+  // Handle sorting
+  let orderBy: any = { id: 'asc' }; // Default sorting
+  
+  const { sort, order } = queryParams;
+  if (sort && order) {
+    switch (sort) {
+      case 'name':
+        orderBy = { name: order };
+        break;
+      case 'email':
+        orderBy = { email: order };
+        break;
+      case 'phone':
+        orderBy = { phone: order };
+        break;
+      case 'address':
+        orderBy = { address: order };
+        break;
+      case 'createdAt':
+        orderBy = { createdAt: order };
+        break;
+      default:
+        orderBy = { id: order };
+        break;
+    }
+  }
+
+  // Handle filters and search
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
@@ -126,6 +156,18 @@ const StudentListPage = async ({
                 },
               },
             };
+            break;
+          case "classId":
+            query.classId = parseInt(value);
+            break;
+          case "gradeId":
+            query.gradeId = parseInt(value);
+            break;
+          case "sex":
+            query.sex = value as any;
+            break;
+          case "bloodType":
+            query.bloodType = value;
             break;
           case "search":
             query.OR = [
@@ -145,32 +187,96 @@ const StudentListPage = async ({
     }
   }
 
-  const [data, count] = await prisma.$transaction([
+  const [data, count, classes, grades] = await prisma.$transaction([
     prisma.student.findMany({
       where: query,
       include: {
-        class: true,
+        class: {
+          include: {
+            grade: true,
+          },
+        },
       },
+      orderBy,
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.student.count({ where: query }),
+    prisma.class.findMany({
+      include: {
+        grade: true,
+      },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.grade.findMany({
+      orderBy: { level: 'asc' },
+    }),
   ]);
 
+  // Sort options for students
+  const sortOptions = [
+    { value: "name-asc", label: "Name (A-Z)", field: "name", direction: "asc" as const },
+    { value: "name-desc", label: "Name (Z-A)", field: "name", direction: "desc" as const },
+    { value: "email-asc", label: "Email (A-Z)", field: "email", direction: "asc" as const },
+    { value: "email-desc", label: "Email (Z-A)", field: "email", direction: "desc" as const },
+    { value: "createdAt-asc", label: "Oldest First", field: "createdAt", direction: "asc" as const },
+    { value: "createdAt-desc", label: "Newest First", field: "createdAt", direction: "desc" as const },
+  ];
+
+  // Filter options for students
+  const filterGroups = [
+    {
+      title: "Class",
+      param: "classId",
+      options: classes.map(cls => ({
+        value: cls.id.toString(),
+        label: `${cls.name} (Grade ${cls.grade.level})`,
+        param: "classId"
+      }))
+    },
+    {
+      title: "Grade",
+      param: "gradeId",
+      options: grades.map(grade => ({
+        value: grade.id.toString(),
+        label: `Grade ${grade.level}`,
+        param: "gradeId"
+      }))
+    },
+    {
+      title: "Gender",
+      param: "sex",
+      options: [
+        { value: "MALE", label: "Male", param: "sex" },
+        { value: "FEMALE", label: "Female", param: "sex" }
+      ]
+    },
+    {
+      title: "Blood Type",
+      param: "bloodType",
+      options: [
+        { value: "A+", label: "A+", param: "bloodType" },
+        { value: "A-", label: "A-", param: "bloodType" },
+        { value: "B+", label: "B+", param: "bloodType" },
+        { value: "B-", label: "B-", param: "bloodType" },
+        { value: "AB+", label: "AB+", param: "bloodType" },
+        { value: "AB-", label: "AB-", param: "bloodType" },
+        { value: "O+", label: "O+", param: "bloodType" },
+        { value: "O-", label: "O-", param: "bloodType" }
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Students</h1>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="" width={14} height={14} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="" width={14} height={14} />
-            </button>
+            <FilterDropdown groups={filterGroups} />
+            <SortDropdown options={sortOptions} />
             {finalRole === "admin" ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="student" type="create" />

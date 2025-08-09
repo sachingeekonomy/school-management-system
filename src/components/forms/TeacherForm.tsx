@@ -66,14 +66,11 @@ const TeacherForm = ({
   const { subjects } = relatedData;
 
   return (
-    <form className="flex flex-col gap-8" onSubmit={onSubmit}>
-      <h1 className="text-xl font-semibold">
-        {type === "create" ? "Create a new teacher" : "Update the teacher"}
-      </h1>
+    <form className="flex flex-col gap-6 p-4" onSubmit={onSubmit}>
       <span className="text-xs text-gray-400 font-medium">
         Authentication Information
       </span>
-      <div className="flex justify-between flex-wrap gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <InputField
           label="Username"
           name="username"
@@ -100,7 +97,7 @@ const TeacherForm = ({
       <span className="text-xs text-gray-400 font-medium">
         Personal Information
       </span>
-      <div className="flex justify-between flex-wrap gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <InputField
           label="First Name"
           name="name"
@@ -154,7 +151,7 @@ const TeacherForm = ({
             hidden
           />
         )}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-gray-500">Sex</label>
           <select
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
@@ -170,7 +167,7 @@ const TeacherForm = ({
             </p>
           )}
         </div>
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-2 col-span-full">
           <label className="text-xs text-gray-500">Subjects</label>
           <div className="border border-gray-300 rounded-md p-3 max-h-40 overflow-y-auto bg-white">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -200,7 +197,7 @@ const TeacherForm = ({
           )}
         </div>
         {/* Photo upload */}
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-2 col-span-full">
           <label className="text-xs text-gray-500">Profile Photo</label>
           <div className="flex items-center gap-4">
             {img?.secure_url && (
@@ -258,7 +255,7 @@ const TeacherForm = ({
       {state.error && (
         <span className="text-red-500">Something went wrong!</span>
       )}
-      <button className="bg-blue-400 text-white p-2 rounded-md">
+      <button className="bg-blue-400 text-white p-2 rounded-md w-full md:w-auto md:self-start">
         {type === "create" ? "Create" : "Update"}
       </button>
     </form>
