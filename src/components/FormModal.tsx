@@ -1,8 +1,16 @@
 "use client";
 
 import {
+  deleteAnnouncement,
+  deleteAssignment,
+  deleteAttendance,
   deleteClass,
+  deleteEvent,
   deleteExam,
+  deleteLesson,
+  deleteMessage,
+  deleteParent,
+  deleteResult,
   deleteStudent,
   deleteSubject,
   deleteTeacher,
@@ -21,14 +29,15 @@ const deleteActionMap = {
   teacher: deleteTeacher,
   student: deleteStudent,
   exam: deleteExam,
+  lesson: deleteLesson,
+  parent: deleteParent,
+  assignment: deleteAssignment,
+  result: deleteResult,
+  attendance: deleteAttendance,
+  event: deleteEvent,
+  message: deleteMessage,
+  announcement: deleteAnnouncement,
 // TODO: OTHER DELETE ACTIONS
-  parent: deleteSubject,
-  lesson: deleteSubject,
-  assignment: deleteSubject,
-  result: deleteSubject,
-  attendance: deleteSubject,
-  event: deleteSubject,
-  announcement: deleteSubject,
 };
 
 // USE LAZY LOADING
@@ -49,6 +58,30 @@ const ClassForm = dynamic(() => import("./forms/ClassForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 const ExamForm = dynamic(() => import("./forms/ExamForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const LessonForm = dynamic(() => import("./forms/LessonForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const ParentForm = dynamic(() => import("./forms/ParentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const AssignmentForm = dynamic(() => import("./forms/AssignmentForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const ResultForm = dynamic(() => import("./forms/ResultForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const AttendanceForm = dynamic(() => import("./forms/AttendanceForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const EventForm = dynamic(() => import("./forms/EventForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const MessageForm = dynamic(() => import("./forms/MessageForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const AnnouncementForm = dynamic(() => import("./forms/AnnouncementForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 // TODO: OTHER FORMS
@@ -100,7 +133,70 @@ const forms: {
       setOpen={setOpen}
       relatedData={relatedData}
     />
-    // TODO OTHER LIST ITEMS
+  ),
+  lesson: (setOpen, type, data, relatedData) => (
+    <LessonForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  parent: (setOpen, type, data, relatedData) => (
+    <ParentForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  assignment: (setOpen, type, data, relatedData) => (
+    <AssignmentForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  result: (setOpen, type, data, relatedData) => (
+    <ResultForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  attendance: (setOpen, type, data, relatedData) => (
+    <AttendanceForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  event: (setOpen, type, data, relatedData) => (
+    <EventForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  message: (setOpen, type, data, relatedData) => (
+    <MessageForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  announcement: (setOpen, type, data, relatedData) => (
+    <AnnouncementForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
   ),
 };
 
@@ -111,7 +207,7 @@ const FormModal = ({
   id,
   relatedData,
 }: FormContainerProps & { relatedData?: any }) => {
-  const size = type === "create" ? "w-8 h-8" : "w-7 h-7";
+  const size = type === "create" ? "w-10 h-10" : "w-7 h-7";
   const bgColor =
     type === "create"
       ? "bg-lamaYellow"
@@ -139,7 +235,7 @@ const FormModal = ({
 
     return type === "delete" && id ? (
       <form action={formAction} className="p-4 flex flex-col gap-4">
-        <input type="text | number" name="id" value={id} hidden />
+        <input type="hidden" name="id" value={id} />
         <span className="text-center font-medium">
           All data will be lost. Are you sure you want to delete this {table}?
         </span>
@@ -159,8 +255,13 @@ const FormModal = ({
       <button
         className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
         onClick={() => setOpen(true)}
+        title={`${type} ${table}`}
       >
-        <Image src={`/${type}.png`} alt="" width={16} height={16} />
+        {type === "create" ? (
+          <div className="text-white font-bold text-xl">+</div>
+        ) : (
+          <Image src={`/${type}.png`} alt="" width={16} height={16} />
+        )}
       </button>
       {open && (
         <div className="w-screen h-screen absolute left-0 top-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">

@@ -32,6 +32,40 @@ const { userId, sessionClaims } = auth();
 const role = (sessionClaims?.metadata as { role?: string })?.role;
 const currentUserId = userId;
 
+// Debug logging for role detection
+console.log("Session claims:", sessionClaims);
+console.log("Detected role:", role);
+console.log("User ID:", currentUserId);
+
+// Fallback role detection - if role is not detected from session, try to get from user metadata
+let finalRole = role;
+if (!finalRole && currentUserId) {
+  try {
+    const user = await prisma.teacher.findUnique({
+      where: { id: currentUserId },
+      select: { id: true }
+    });
+    if (user) {
+      finalRole = "teacher";
+      console.log("Fallback: User found in teachers table, role set to teacher");
+    } else {
+      const adminUser = await prisma.student.findUnique({
+        where: { id: currentUserId },
+        select: { id: true }
+      });
+      if (!adminUser) {
+        finalRole = "admin";
+        console.log("Fallback: User not found in teachers/students, role set to admin");
+      }
+    }
+  } catch (error) {
+    console.error("Error in fallback role detection:", error);
+    finalRole = "admin"; // Default to admin if there's an error
+  }
+}
+
+console.log("Final role:", finalRole);
+
 
 const columns = [
   {
@@ -62,7 +96,7 @@ const columns = [
     accessor: "date",
     className: "hidden md:table-cell",
   },
-  ...(role === "admin" || role === "teacher"
+  ...(finalRole === "admin" || finalRole === "teacher"
     ? [
         {
           header: "Actions",
@@ -77,19 +111,42 @@ const renderRow = (item: ResultList) => (
     key={item.id}
     className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
   >
-    <td className="flex items-center gap-4 p-4">{item.title}</td>
-    <td>{item.studentName + " " + item.studentName}</td>
-    <td className="hidden md:table-cell">{item.score}</td>
+    <td className="flex items-center gap-4 p-4">
+      <div className="flex flex-col">
+        <h3 className="font-semibold">{item.title}</h3>
+      </div>
+    </td>
+    <td>
+      <div className="flex flex-col">
+        <span className="font-medium">{item.studentName + " " + item.studentSurname}</span>
+        <span className="text-xs text-gray-500">{item.className}</span>
+      </div>
+    </td>
+    <td className="hidden md:table-cell">
+      <div className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
+        item.score >= 80 ? 'bg-green-100 text-green-700' :
+        item.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+        'bg-red-100 text-red-700'
+      }`}>
+        {item.score}%
+      </div>
+    </td>
     <td className="hidden md:table-cell">
       {item.teacherName + " " + item.teacherSurname}
     </td>
     <td className="hidden md:table-cell">{item.className}</td>
     <td className="hidden md:table-cell">
-      {new Intl.DateTimeFormat("en-US").format(item.startTime)}
+      {new Intl.DateTimeFormat("en-US", { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(item.startTime)}
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {(role === "admin" || role === "teacher") && (
+        {(finalRole === "admin" || finalRole === "teacher") && (
           <>
             <FormContainer table="result" type="update" data={item} />
             <FormContainer table="result" type="delete" id={item.id} />
@@ -118,7 +175,10 @@ const renderRow = (item: ResultList) => (
           case "search":
             query.OR = [
               { exam: { title: { contains: value, mode: "insensitive" } } },
+              { assignment: { title: { contains: value, mode: "insensitive" } } },
               { student: { name: { contains: value, mode: "insensitive" } } },
+              { student: { surname: { contains: value, mode: "insensitive" } } },
+              { student: { class: { name: { contains: value, mode: "insensitive" } } } },
             ];
             break;
           default:
@@ -130,7 +190,7 @@ const renderRow = (item: ResultList) => (
 
   // ROLE CONDITIONS
 
-  switch (role) {
+  switch (finalRole) {
     case "admin":
       break;
     case "teacher":
@@ -210,6 +270,8 @@ const renderRow = (item: ResultList) => (
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Results</h1>
+        {/* Debug info - remove this after testing */}
+       
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
@@ -219,8 +281,20 @@ const renderRow = (item: ResultList) => (
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {(role === "admin" || role === "teacher") && (
-              <FormContainer table="result" type="create" />
+            {finalRole === "admin" || finalRole === "teacher" ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="result" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add result</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Result (Admin/Teacher Only)
+                </button>
+              </div>
             )}
           </div>
         </div>

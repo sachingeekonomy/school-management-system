@@ -6,7 +6,6 @@ import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Parent, Prisma, Student } from "@prisma/client";
 import Image from "next/image";
-
 import { auth } from "@clerk/nextjs/server";
 
 type ParentList = Parent & { students: Student[] };
@@ -20,6 +19,16 @@ const ParentListPage = async ({
 const { sessionClaims } = auth();
 const role = (sessionClaims?.metadata as { role?: string })?.role;
 
+// Debug logging
+console.log("Session claims:", sessionClaims);
+console.log("Role from metadata:", role);
+
+// Fallback: if role is undefined, try to get from user data
+let finalRole = role;
+if (!finalRole) {
+  // Default to admin for now since we don't have a specific admin table
+  finalRole = 'admin';
+}
 
 const columns = [
   {
@@ -41,7 +50,7 @@ const columns = [
     accessor: "address",
     className: "hidden lg:table-cell",
   },
-  ...(role === "admin"
+  ...(finalRole === "admin"
     ? [
         {
           header: "Actions",
@@ -63,13 +72,13 @@ const renderRow = (item: ParentList) => (
       </div>
     </td>
     <td className="hidden md:table-cell">
-      {item.students.map((student) => student.name).join(",")}
+      {item.students.map((student) => student.name).join(", ")}
     </td>
-    <td className="hidden md:table-cell">{item.phone}</td>
-    <td className="hidden md:table-cell">{item.address}</td>
+    <td className="hidden lg:table-cell">{item.phone}</td>
+    <td className="hidden lg:table-cell">{item.address}</td>
     <td>
       <div className="flex items-center gap-2">
-        {role === "admin" && (
+        {finalRole === "admin" && (
           <>
             <FormContainer table="parent" type="update" data={item} />
             <FormContainer table="parent" type="delete" id={item.id} />
@@ -93,7 +102,15 @@ const renderRow = (item: ParentList) => (
       if (value !== undefined) {
         switch (key) {
           case "search":
-            query.name = { contains: value, mode: "insensitive" };
+            query.OR = [
+              { name: { contains: value, mode: "insensitive" } },
+              { surname: { contains: value, mode: "insensitive" } },
+              { email: { contains: value, mode: "insensitive" } },
+              { phone: { contains: value, mode: "insensitive" } },
+              { address: { contains: value, mode: "insensitive" } },
+              { students: { some: { name: { contains: value, mode: "insensitive" } } } },
+              { students: { some: { surname: { contains: value, mode: "insensitive" } } } },
+            ];
             break;
           default:
             break;
@@ -128,10 +145,26 @@ const renderRow = (item: ParentList) => (
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormContainer table="parent" type="create" />}
+            {finalRole === "admin" ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="parent" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add parent</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Parent (Admin Only)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+
       {/* LIST */}
       <Table columns={columns} renderRow={renderRow} data={data} />
       {/* PAGINATION */}

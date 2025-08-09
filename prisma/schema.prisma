@@ -179,6 +179,40 @@ model Announcement {
   class   Class? @relation(fields: [classId], references: [id])
 }
 
+model Message {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  date      DateTime @default(now())
+  isRead    Boolean  @default(false)
+
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model User {
+  id        String    @id
+  username  String    @unique
+  name      String
+  surname   String
+  email     String?   @unique
+  phone     String?   @unique
+  role      UserRole
+  createdAt DateTime  @default(now())
+  
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
 enum UserSex {
   MALE
   FEMALE

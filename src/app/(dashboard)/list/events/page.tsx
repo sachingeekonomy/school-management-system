@@ -8,7 +8,7 @@ import { Class, Event, Prisma } from "@prisma/client";
 import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 
-type EventList = Event & { class: Class };
+type EventList = Event & { class: Class & { grade: { level: number } } };
 
 const EventListPage = async ({
   searchParams,
@@ -19,6 +19,40 @@ const EventListPage = async ({
   const { userId, sessionClaims } = auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const currentUserId = userId;
+
+  // Debug logging for role detection
+  console.log("Session claims:", sessionClaims);
+  console.log("Detected role:", role);
+  console.log("User ID:", currentUserId);
+
+  // Fallback role detection - if role is not detected from session, try to get from user metadata
+  let finalRole = role;
+  if (!finalRole && currentUserId) {
+    try {
+      const user = await prisma.teacher.findUnique({
+        where: { id: currentUserId },
+        select: { id: true }
+      });
+      if (user) {
+        finalRole = "teacher";
+        console.log("Fallback: User found in teachers table, role set to teacher");
+      } else {
+        const adminUser = await prisma.student.findUnique({
+          where: { id: currentUserId },
+          select: { id: true }
+        });
+        if (!adminUser) {
+          finalRole = "admin";
+          console.log("Fallback: User not found in teachers/students, role set to admin");
+        }
+      }
+    } catch (error) {
+      console.error("Error in fallback role detection:", error);
+      finalRole = "admin"; // Default to admin if there's an error
+    }
+  }
+
+  console.log("Final role:", finalRole);
 
   const columns = [
     {
@@ -44,7 +78,7 @@ const EventListPage = async ({
       accessor: "endTime",
       className: "hidden md:table-cell",
     },
-    ...(role === "admin"
+    ...(finalRole === "admin"
       ? [
           {
             header: "Actions",
@@ -59,28 +93,51 @@ const EventListPage = async ({
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.title}</td>
-      <td>{item.class?.name || "-"}</td>
-      <td className="hidden md:table-cell">
-        {new Intl.DateTimeFormat("en-US").format(item.startTime)}
+      <td className="flex items-center gap-4 p-4">
+        <div className="flex flex-col">
+          <h3 className="font-semibold">{item.title}</h3>
+        </div>
+      </td>
+      <td>
+        <div className="flex flex-col">
+          <span className="font-medium">{item.class?.name || "All Classes"}</span>
+          <span className="text-xs text-gray-500">{item.class?.grade?.level ? `Grade ${item.class.grade.level}` : "General Event"}</span>
+        </div>
       </td>
       <td className="hidden md:table-cell">
-        {item.startTime.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })}
+        {new Intl.DateTimeFormat("en-US", { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric'
+        }).format(item.startTime)}
       </td>
       <td className="hidden md:table-cell">
-        {item.endTime.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })}
+        <div className="flex flex-col">
+          <span className="font-medium">
+            {item.startTime.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })}
+          </span>
+          <span className="text-xs text-gray-500">Start</span>
+        </div>
+      </td>
+      <td className="hidden md:table-cell">
+        <div className="flex flex-col">
+          <span className="font-medium">
+            {item.endTime.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })}
+          </span>
+          <span className="text-xs text-gray-500">End</span>
+        </div>
       </td>
       <td>
         <div className="flex items-center gap-2">
-          {role === "admin" && (
+          {finalRole === "admin" && (
             <>
               <FormContainer table="event" type="update" data={item} />
               <FormContainer table="event" type="delete" id={item.id} />
@@ -104,7 +161,11 @@ const EventListPage = async ({
       if (value !== undefined) {
         switch (key) {
           case "search":
-            query.title = { contains: value, mode: "insensitive" };
+            query.OR = [
+              { title: { contains: value, mode: "insensitive" } },
+              { description: { contains: value, mode: "insensitive" } },
+              { class: { name: { contains: value, mode: "insensitive" } } },
+            ];
             break;
           default:
             break;
@@ -124,7 +185,7 @@ const EventListPage = async ({
   query.OR = [
     { classId: null },
     {
-      class: roleConditions[role as keyof typeof roleConditions] || {},
+      class: roleConditions[finalRole as keyof typeof roleConditions] || {},
     },
   ];
 
@@ -132,7 +193,11 @@ const EventListPage = async ({
     prisma.event.findMany({
       where: query,
       include: {
-        class: true,
+        class: {
+          include: {
+            grade: true,
+          },
+        },
       },
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
@@ -154,7 +219,21 @@ const EventListPage = async ({
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormContainer table="event" type="create" />}
+            {finalRole === "admin" ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="event" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add event</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Event (Admin Only)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

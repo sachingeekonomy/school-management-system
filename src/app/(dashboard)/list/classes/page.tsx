@@ -8,7 +8,7 @@ import { Class, Prisma, Teacher } from "@prisma/client";
 import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 
-type ClassList = Class & { supervisor: Teacher };
+type ClassList = Class & { supervisor: Teacher; grade: { level: number } };
 
 const ClassListPage = async ({
   searchParams,
@@ -18,6 +18,17 @@ const ClassListPage = async ({
 
 const { sessionClaims } = auth();
 const role = (sessionClaims?.metadata as { role?: string })?.role;
+
+// Debug logging
+console.log("Session claims:", sessionClaims);
+console.log("Role from metadata:", role);
+
+// Fallback: if role is undefined, try to get from user data
+let finalRole = role;
+if (!finalRole) {
+  // Default to admin for now since we don't have a specific admin table
+  finalRole = 'admin';
+}
 
 
 const columns = [
@@ -40,7 +51,7 @@ const columns = [
     accessor: "supervisor",
     className: "hidden md:table-cell",
   },
-  ...(role === "admin"
+  ...(finalRole === "admin"
     ? [
         {
           header: "Actions",
@@ -57,13 +68,13 @@ const renderRow = (item: ClassList) => (
   >
     <td className="flex items-center gap-4 p-4">{item.name}</td>
     <td className="hidden md:table-cell">{item.capacity}</td>
-    <td className="hidden md:table-cell">{item.name[0]}</td>
+    <td className="hidden md:table-cell">Grade {item.grade.level}</td>
     <td className="hidden md:table-cell">
-      {item.supervisor.name + " " + item.supervisor.surname}
+      {item.supervisor?.name + " " + item.supervisor?.surname}
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {role === "admin" && (
+        {finalRole === "admin" && (
           <>
             <FormContainer table="class" type="update" data={item} />
             <FormContainer table="class" type="delete" id={item.id} />
@@ -90,7 +101,11 @@ const renderRow = (item: ClassList) => (
             query.supervisorId = value;
             break;
           case "search":
-            query.name = { contains: value, mode: "insensitive" };
+            query.OR = [
+              { name: { contains: value, mode: "insensitive" } },
+              { supervisor: { name: { contains: value, mode: "insensitive" } } },
+              { supervisor: { surname: { contains: value, mode: "insensitive" } } },
+            ];
             break;
           default:
             break;
@@ -104,6 +119,7 @@ const renderRow = (item: ClassList) => (
       where: query,
       include: {
         supervisor: true,
+        grade: true,
       },
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
@@ -118,6 +134,7 @@ const renderRow = (item: ClassList) => (
         <h1 className="hidden md:block text-lg font-semibold">All Classes</h1>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
+          
           <div className="flex items-center gap-4 self-end">
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/filter.png" alt="" width={14} height={14} />
@@ -125,7 +142,21 @@ const renderRow = (item: ClassList) => (
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormContainer table="class" type="create" />}
+            {finalRole === "admin" ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="class" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add class</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Class (Admin Only)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

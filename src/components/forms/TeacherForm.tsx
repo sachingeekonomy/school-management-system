@@ -10,7 +10,7 @@ import { useFormState } from "react-dom";
 import { createTeacher, updateTeacher } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { CldUploadWidget } from "next-cloudinary";
+
 
 const TeacherForm = ({
   type,
@@ -40,6 +40,13 @@ const TeacherForm = ({
       error: false,
     }
   );
+
+  // Set initial image when updating
+  useEffect(() => {
+    if (type === "update" && data?.img) {
+      setImg({ secure_url: data.img });
+    }
+  }, [type, data?.img]);
 
   const onSubmit = handleSubmit((data) => {
     console.log(data);
@@ -132,7 +139,7 @@ const TeacherForm = ({
         <InputField
           label="Birthday"
           name="birthday"
-          defaultValue={data?.birthday.toISOString().split("T")[0]}
+          defaultValue={data?.birthday?.toISOString().split("T")[0]}
           register={register}
           error={errors.birthday}
           type="date"
@@ -163,45 +170,90 @@ const TeacherForm = ({
             </p>
           )}
         </div>
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
+        <div className="flex flex-col gap-2 w-full">
           <label className="text-xs text-gray-500">Subjects</label>
-          <select
-            multiple
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("subjects")}
-            defaultValue={data?.subjects}
-          >
-            {subjects.map((subject: { id: number; name: string }) => (
-              <option value={subject.id} key={subject.id}>
-                {subject.name}
-              </option>
-            ))}
-          </select>
+          <div className="border border-gray-300 rounded-md p-3 max-h-40 overflow-y-auto bg-white">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {subjects?.map((subject: { id: number; name: string }) => {
+                const isSelected = data?.subjects?.some((s: any) => 
+                  s.id === subject.id || s === subject.id?.toString()
+                );
+                return (
+                  <label key={subject.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      value={subject.id}
+                      defaultChecked={isSelected}
+                      {...register("subjects")}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{subject.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
           {errors.subjects?.message && (
             <p className="text-xs text-red-400">
               {errors.subjects.message.toString()}
             </p>
           )}
         </div>
-        <CldUploadWidget
-          uploadPreset="school"
-          onSuccess={(result, { widget }) => {
-            setImg(result.info);
-            widget.close();
-          }}
-        >
-          {({ open }) => {
-            return (
-              <div
-                className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-                onClick={() => open()}
-              >
-                <Image src="/upload.png" alt="" width={28} height={28} />
-                <span>Upload a photo</span>
+        {/* Photo upload */}
+        <div className="flex flex-col gap-2 w-full">
+          <label className="text-xs text-gray-500">Profile Photo</label>
+          <div className="flex items-center gap-4">
+            {img?.secure_url && (
+              <div className="relative">
+                <Image 
+                  src={img.secure_url} 
+                  alt="Profile preview" 
+                  width={60} 
+                  height={60} 
+                  className="rounded-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setImg(null)}
+                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                >
+                  ×
+                </button>
               </div>
-            );
-          }}
-        </CldUploadWidget>
+            )}
+                         {/* Simple file input for photo upload */}
+             <input
+               type="file"
+               accept="image/*"
+               onChange={(e) => {
+                 const file = e.target.files?.[0];
+                 if (file) {
+                   const reader = new FileReader();
+                   reader.onload = (event) => {
+                     setImg({
+                       secure_url: event.target?.result as string
+                     });
+                   };
+                   reader.readAsDataURL(file);
+                 }
+               }}
+               className="hidden"
+               id="photo-upload"
+             />
+             <label
+               htmlFor="photo-upload"
+               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+             >
+               <Image src="/upload.png" alt="" width={20} height={20} />
+               <span className="text-sm">
+                 {img?.secure_url ? "Change Photo" : "Upload Photo"}
+               </span>
+             </label>
+          </div>
+          {img?.secure_url && (
+            <p className="text-xs text-green-600">Photo uploaded successfully!</p>
+          )}
+        </div>
       </div>
       {state.error && (
         <span className="text-red-500">Something went wrong!</span>

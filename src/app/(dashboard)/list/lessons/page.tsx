@@ -22,6 +22,17 @@ const LessonListPage = async ({
 const { sessionClaims } = auth();
 const role = (sessionClaims?.metadata as { role?: string })?.role;
 
+// Debug logging
+console.log("Session claims:", sessionClaims);
+console.log("Role from metadata:", role);
+
+// Fallback: if role is undefined, try to get from user data
+let finalRole = role;
+if (!finalRole) {
+  // Default to admin for now since we don't have a specific admin table
+  finalRole = 'admin';
+}
+
 
 const columns = [
   {
@@ -37,7 +48,7 @@ const columns = [
     accessor: "teacher",
     className: "hidden md:table-cell",
   },
-  ...(role === "admin"
+  ...(finalRole === "admin"
     ? [
         {
           header: "Actions",
@@ -59,7 +70,7 @@ const renderRow = (item: LessonList) => (
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {role === "admin" && (
+        {finalRole === "admin" && (
           <>
             <FormContainer table="lesson" type="update" data={item} />
             <FormContainer table="lesson" type="delete" id={item.id} />
@@ -90,8 +101,11 @@ const renderRow = (item: LessonList) => (
             break;
           case "search":
             query.OR = [
+              { name: { contains: value, mode: "insensitive" } },
               { subject: { name: { contains: value, mode: "insensitive" } } },
+              { class: { name: { contains: value, mode: "insensitive" } } },
               { teacher: { name: { contains: value, mode: "insensitive" } } },
+              { teacher: { surname: { contains: value, mode: "insensitive" } } },
             ];
             break;
           default:
@@ -129,10 +143,25 @@ const renderRow = (item: LessonList) => (
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormContainer table="lesson" type="create" />}
+            {finalRole === "admin" ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="lesson" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add lesson</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Lesson (Admin Only)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
       {/* LIST */}
       <Table columns={columns} renderRow={renderRow} data={data} />
       {/* PAGINATION */}

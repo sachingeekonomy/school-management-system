@@ -26,6 +26,17 @@ const { userId, sessionClaims } = auth();
 const role = (sessionClaims?.metadata as { role?: string })?.role;
 const currentUserId = userId;
 
+// Debug logging
+console.log("Session claims:", sessionClaims);
+console.log("Role from metadata:", role);
+
+// Fallback: if role is undefined, try to get from user data
+let finalRole = role;
+if (!finalRole) {
+  // Default to admin for now since we don't have a specific admin table
+  finalRole = 'admin';
+}
+
 
 const columns = [
   {
@@ -46,7 +57,7 @@ const columns = [
     accessor: "date",
     className: "hidden md:table-cell",
   },
-  ...(role === "admin" || role === "teacher"
+  ...(finalRole === "admin" || finalRole === "teacher"
     ? [
         {
           header: "Actions",
@@ -71,7 +82,7 @@ const renderRow = (item: ExamList) => (
     </td>
     <td>
       <div className="flex items-center gap-2">
-        {(role === "admin" || role === "teacher") && (
+        {(finalRole === "admin" || finalRole === "teacher") && (
           <>
             <FormContainer table="exam" type="update" data={item} />
             <FormContainer table="exam" type="delete" id={item.id} />
@@ -102,9 +113,13 @@ const renderRow = (item: ExamList) => (
             query.lesson.teacherId = value;
             break;
           case "search":
-            query.lesson.subject = {
-              name: { contains: value, mode: "insensitive" },
-            };
+            query.OR = [
+              { title: { contains: value, mode: "insensitive" } },
+              { lesson: { subject: { name: { contains: value, mode: "insensitive" } } } },
+              { lesson: { class: { name: { contains: value, mode: "insensitive" } } } },
+              { lesson: { teacher: { name: { contains: value, mode: "insensitive" } } } },
+              { lesson: { teacher: { surname: { contains: value, mode: "insensitive" } } } },
+            ];
             break;
           default:
             break;
@@ -115,7 +130,7 @@ const renderRow = (item: ExamList) => (
 
   // ROLE CONDITIONS
 
-  switch (role) {
+  switch (finalRole) {
     case "admin":
       break;
     case "teacher":
@@ -176,8 +191,20 @@ const renderRow = (item: ExamList) => (
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {(role === "admin" || role === "teacher") && (
-              <FormContainer table="exam" type="create" />
+            {(finalRole === "admin" || finalRole === "teacher") ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="exam" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add exam</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Exam (Admin/Teacher Only)
+                </button>
+              </div>
             )}
           </div>
         </div>

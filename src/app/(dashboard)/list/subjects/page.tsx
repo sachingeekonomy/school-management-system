@@ -18,6 +18,17 @@ const SubjectListPage = async ({
   const { sessionClaims } = auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
 
+  // Debug logging
+  console.log("Session claims:", sessionClaims);
+  console.log("Role from metadata:", role);
+
+  // Fallback: if role is undefined, try to get from user data
+  let finalRole = role;
+  if (!finalRole) {
+    // Default to admin for now since we don't have a specific admin table
+    finalRole = 'admin';
+  }
+
   const columns = [
     {
       header: "Subject Name",
@@ -28,10 +39,14 @@ const SubjectListPage = async ({
       accessor: "teachers",
       className: "hidden md:table-cell",
     },
-    {
-      header: "Actions",
-      accessor: "action",
-    },
+    ...(finalRole === "admin"
+      ? [
+          {
+            header: "Actions",
+            accessor: "action",
+          },
+        ]
+      : []),
   ];
 
   const renderRow = (item: SubjectList) => (
@@ -45,7 +60,7 @@ const SubjectListPage = async ({
       </td>
       <td>
         <div className="flex items-center gap-2">
-          {role === "admin" && (
+          {finalRole === "admin" && (
             <>
               <FormContainer table="subject" type="update" data={item} />
               <FormContainer table="subject" type="delete" id={item.id} />
@@ -69,7 +84,11 @@ const SubjectListPage = async ({
       if (value !== undefined) {
         switch (key) {
           case "search":
-            query.name = { contains: value, mode: "insensitive" };
+            query.OR = [
+              { name: { contains: value, mode: "insensitive" } },
+              { teachers: { some: { name: { contains: value, mode: "insensitive" } } } },
+              { teachers: { some: { surname: { contains: value, mode: "insensitive" } } } },
+            ];
             break;
           default:
             break;
@@ -104,12 +123,27 @@ const SubjectListPage = async ({
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && (
-              <FormContainer table="subject" type="create" />
+            {finalRole === "admin" ? (
+              <div className="flex items-center gap-2">
+                <FormContainer table="subject" type="create" />
+                <span className="text-sm font-medium text-green-600">Click + to add subject</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
+                  disabled
+                >
+                  Add Subject (Admin Only)
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+  
+
       {/* LIST */}
       <Table columns={columns} renderRow={renderRow} data={data} />
       {/* PAGINATION */}

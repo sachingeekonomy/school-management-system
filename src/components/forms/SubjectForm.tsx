@@ -62,42 +62,48 @@ const SubjectForm = ({
         {type === "create" ? "Create a new subject" : "Update the subject"}
       </h1>
 
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Subject name"
-          name="name"
-          defaultValue={data?.name}
-          register={register}
-          error={errors?.name}
-        />
-        {data && (
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between flex-wrap gap-4">
           <InputField
-            label="Id"
-            name="id"
-            defaultValue={data?.id}
+            label="Subject name"
+            name="name"
+            defaultValue={data?.name}
             register={register}
-            error={errors?.id}
-            hidden
+            error={errors?.name}
           />
-        )}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Teachers</label>
-          <select
-            multiple
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("teachers")}
-            defaultValue={data?.teachers}
-          >
+          {data && (
+            <InputField
+              label="Id"
+              name="id"
+              defaultValue={data?.id}
+              register={register}
+              error={errors?.id}
+              hidden
+            />
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700">Assign Teachers</label>
+          <p className="text-xs text-gray-500 mb-2">Select one or more teachers to assign to this subject:</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-40 overflow-y-auto p-3 border border-gray-300 rounded-md bg-gray-50">
             {teachers.map(
               (teacher: { id: string; name: string; surname: string }) => (
-                <option value={teacher.id} key={teacher.id}>
-                  {teacher.name + " " + teacher.surname}
-                </option>
+                <label key={teacher.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-white p-2 rounded-md transition-colors">
+                  <input
+                    type="checkbox"
+                    value={teacher.id}
+                    {...register("teachers")}
+                    defaultChecked={data?.teachers?.some((t: any) => t.id === teacher.id || t === teacher.id)}
+                    className="form-checkbox h-4 w-4 text-lamaSky rounded focus:ring-2 focus:ring-lamaSky focus:ring-offset-2"
+                  />
+                  <span className="font-medium">{teacher.name + " " + teacher.surname}</span>
+                </label>
               )
             )}
-          </select>
+          </div>
           {errors.teachers?.message && (
-            <p className="text-xs text-red-400">
+            <p className="text-xs text-red-400 mt-1">
               {errors.teachers.message.toString()}
             </p>
           )}
@@ -106,8 +112,8 @@ const SubjectForm = ({
       {state.error && (
         <span className="text-red-500">Something went wrong!</span>
       )}
-      <button className="bg-blue-400 text-white p-2 rounded-md">
-        {type === "create" ? "Create" : "Update"}
+      <button className="bg-lamaSky text-white p-3 rounded-md font-medium hover:bg-lamaSky/90 transition-colors">
+        {type === "create" ? "Create Subject" : "Update Subject"}
       </button>
     </form>
   );

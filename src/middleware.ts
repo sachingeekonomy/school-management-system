@@ -36,13 +36,8 @@ export default clerkMiddleware((auth, req) => {
   // If role is still undefined, redirect to admin as default
   const userRole = role || 'admin';
 
-  console.log('Middleware - Path:', req.nextUrl.pathname);
-  console.log('Middleware - Session Claims:', sessionClaims);
-  console.log('Middleware - User Role:', userRole);
-
   for (const { matcher, allowedRoles } of matchers) {
     if (matcher(req) && !allowedRoles.includes(userRole)) {
-      console.log('Middleware - Redirecting to:', `/${userRole}`);
       return NextResponse.redirect(new URL(`/${userRole}`, req.url));
     }
   }
