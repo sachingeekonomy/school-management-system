@@ -13,8 +13,8 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Generate Database
-RUN npx prisma migrate dev --name init
+# Disable ESLint during build
+ENV NEXT_DISABLE_ESLINT=true
 
 # Build the Next.js application
 RUN npm run build

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false });
 
 export default function ApiDocsPage() {
-  const [swaggerSpec, setSwaggerSpec] = useState(null);
+  const [swaggerSpec, setSwaggerSpec] = useState<any>(null);
 
   useEffect(() => {
     // Fetch the swagger spec from our API

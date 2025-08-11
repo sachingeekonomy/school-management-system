@@ -70,7 +70,7 @@ const AdminPage = async ({
               Welcome back, Administrator
             </h1>
             <p className="text-blue-100 text-xl max-w-3xl mb-8">
-              Monitor your school's performance, track student progress, and manage all activities from one central dashboard.
+              Monitor your school&apos;s performance, track student progress, and manage all activities from one central dashboard.
             </p>
             
             {/* Quick Stats Row */}
