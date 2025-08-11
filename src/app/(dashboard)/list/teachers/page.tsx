@@ -2,8 +2,9 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import SortDropdown from "@/components/SortDropdown";
-import FilterDropdown from "@/components/FilterDropdown";
+import FilterSortButtons from "@/components/FilterSortButtons";
+import SearchResultsIndicator from "@/components/SearchResultsIndicator";
+import TagList from "@/components/TagList";
 import prisma from "@/lib/prisma";
 import { Class, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
@@ -56,16 +57,16 @@ const TeacherListPage = async ({
       accessor: "teacherId",
       className: "hidden md:table-cell",
     },
-    {
-      header: "Subjects",
-      accessor: "subjects",
-      className: "hidden md:table-cell",
-    },
-    {
-      header: "Classes",
-      accessor: "classes",
-      className: "hidden md:table-cell",
-    },
+         {
+       header: "Subjects",
+       accessor: "subjects",
+       className: "hidden lg:table-cell min-w-[150px]",
+     },
+     {
+       header: "Classes",
+       accessor: "classes",
+       className: "hidden lg:table-cell min-w-[120px]",
+     },
     {
       header: "Phone",
       accessor: "phone",
@@ -105,12 +106,12 @@ const TeacherListPage = async ({
         </div>
       </td>
       <td className="hidden md:table-cell">{item.username}</td>
-      <td className="hidden md:table-cell">
-        {item.subjects.map((subject) => subject.name).join(",")}
-      </td>
-      <td className="hidden md:table-cell">
-        {item.classes.map((classItem) => classItem.name).join(",")}
-      </td>
+                    <td className="hidden lg:table-cell">
+         <TagList items={item.subjects} color="blue" maxWidth="max-w-[200px]" />
+       </td>
+       <td className="hidden lg:table-cell">
+         <TagList items={item.classes} color="green" maxWidth="max-w-[150px]" />
+       </td>
       <td className="hidden md:table-cell">{item.phone}</td>
       <td className="hidden md:table-cell">{item.address}</td>
       <td>
@@ -171,9 +172,9 @@ const TeacherListPage = async ({
       if (value !== undefined) {
         switch (key) {
           case "classId":
-            query.lessons = {
+            query.classes = {
               some: {
-                classId: parseInt(value),
+                id: parseInt(value),
               },
             };
             break;
@@ -184,15 +185,11 @@ const TeacherListPage = async ({
               },
             };
             break;
-          case "sex":
-            query.sex = value as any;
+          case "gender":
+            query.sex = value as "MALE" | "FEMALE";
             break;
-          case "supervisorClass":
-            query.classes = {
-              some: {
-                id: parseInt(value),
-              },
-            };
+          case "bloodType":
+            query.bloodType = value;
             break;
           case "search":
             query.OR = [
@@ -211,7 +208,40 @@ const TeacherListPage = async ({
     }
   }
 
-  const [data, count, subjects, classes] = await prisma.$transaction([
+  // Sort configuration
+  const sortBy = queryParams.sortBy || 'name';
+  const sortOrder = queryParams.sortOrder || 'asc';
+  
+  const orderBy: Prisma.TeacherOrderByWithRelationInput = {};
+  if (sortBy === 'name') {
+    orderBy.name = sortOrder as 'asc' | 'desc';
+  } else if (sortBy === 'username') {
+    orderBy.username = sortOrder as 'asc' | 'desc';
+  } else if (sortBy === 'email') {
+    orderBy.email = sortOrder as 'asc' | 'desc';
+  } else if (sortBy === 'phone') {
+    orderBy.phone = sortOrder as 'asc' | 'desc';
+  } else if (sortBy === 'birthday') {
+    orderBy.birthday = sortOrder as 'asc' | 'desc';
+  } else if (sortBy === 'createdAt') {
+    orderBy.createdAt = sortOrder as 'asc' | 'desc';
+  } else {
+    orderBy.name = 'asc'; // default sort
+  }
+
+  // Fetch classes and subjects for filter options
+  const [classes, subjects] = await prisma.$transaction([
+    prisma.class.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' }
+    }),
+    prisma.subject.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' }
+    })
+  ]);
+
+  const [data, count] = await prisma.$transaction([
     prisma.teacher.findMany({
       where: query,
       include: {
@@ -281,12 +311,14 @@ const TeacherListPage = async ({
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-          <TableSearch />
+                 <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+           <TableSearch 
+             placeholder="Search teachers..." 
+             searchFields={["name", "surname", "username", "email", "phone", "address"]}
+           />
           
           <div className="flex items-center gap-4 self-end">
-            <FilterDropdown groups={filterGroups} />
-            <SortDropdown options={sortOptions} />
+            <FilterSortButtons classes={classes} subjects={subjects} />
             {finalRole === "admin" ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="teacher" type="create" />
@@ -304,9 +336,17 @@ const TeacherListPage = async ({
             )}
           </div>
         </div>
-      </div>
-      {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={data} />
+             </div>
+       
+       {/* Search Results Indicator */}
+       <SearchResultsIndicator 
+         totalResults={count} 
+         classes={classes}
+         subjects={subjects}
+       />
+       
+       {/* LIST */}
+       <Table columns={columns} renderRow={renderRow} data={data} />
       {/* PAGINATION */}
       <Pagination page={p} count={count} />
     </div>

@@ -4,7 +4,15 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const TableSearch = () => {
+interface TableSearchProps {
+  placeholder?: string;
+  searchFields?: string[];
+}
+
+const TableSearch = ({ 
+  placeholder = "Search...", 
+  searchFields = ["name", "email", "username", "phone"] 
+}: TableSearchProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchValue, setSearchValue] = useState("");
@@ -38,29 +46,46 @@ const TableSearch = () => {
     router.push(`${window.location.pathname}?${params}`);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleClear();
+    }
+  };
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full md:w-auto flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-2 bg-white"
-    >
-      <Image src="/search.png" alt="" width={14} height={14} />
-      <input
-        type="text"
-        placeholder="Search..."
-        value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
-        className="w-[200px] p-2 bg-transparent outline-none"
-      />
+    <div className="relative w-full md:w-auto">
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-2 bg-white hover:ring-2 hover:ring-blue-300 transition-all"
+      >
+        <Image src="/search.png" alt="Search" width={14} height={14} />
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-[200px] p-2 bg-transparent outline-none"
+        />
+        {searchValue && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            title="Clear search"
+          >
+            ×
+          </button>
+        )}
+      </form>
+      
+      {/* Search hint */}
       {searchValue && (
-        <button
-          type="button"
-          onClick={handleClear}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          ×
-        </button>
+        <div className="absolute top-full left-0 mt-1 text-xs text-gray-500 bg-white px-2 py-1 rounded shadow-sm">
+          Searching in: {searchFields.join(", ")}
+        </div>
       )}
-    </form>
+    </div>
   );
 };
 
