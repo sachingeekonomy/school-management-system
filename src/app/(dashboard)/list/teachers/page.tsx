@@ -139,33 +139,6 @@ const TeacherListPage = async ({
 
   const query: Prisma.TeacherWhereInput = {};
 
-  // Handle sorting
-  let orderBy: any = { id: 'asc' }; // Default sorting
-  
-  const { sort, order } = queryParams;
-  if (sort && order) {
-    switch (sort) {
-      case 'name':
-        orderBy = { name: order };
-        break;
-      case 'email':
-        orderBy = { email: order };
-        break;
-      case 'phone':
-        orderBy = { phone: order };
-        break;
-      case 'address':
-        orderBy = { address: order };
-        break;
-      case 'createdAt':
-        orderBy = { createdAt: order };
-        break;
-      default:
-        orderBy = { id: order };
-        break;
-    }
-  }
-
   // Handle additional filters
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -212,7 +185,7 @@ const TeacherListPage = async ({
   const sortBy = queryParams.sortBy || 'name';
   const sortOrder = queryParams.sortOrder || 'asc';
   
-  const orderBy: Prisma.TeacherOrderByWithRelationInput = {};
+  let orderBy: Prisma.TeacherOrderByWithRelationInput = {};
   if (sortBy === 'name') {
     orderBy.name = sortOrder as 'asc' | 'desc';
   } else if (sortBy === 'username') {
@@ -232,7 +205,7 @@ const TeacherListPage = async ({
   // Fetch classes and subjects for filter options
   const [classes, subjects] = await prisma.$transaction([
     prisma.class.findMany({
-      select: { id: true, name: true },
+      select: { id: true, name: true, grade: { select: { level: true } } },
       orderBy: { name: 'asc' }
     }),
     prisma.subject.findMany({
@@ -253,61 +226,12 @@ const TeacherListPage = async ({
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.teacher.count({ where: query }),
-    prisma.subject.findMany({
-      orderBy: { name: 'asc' },
-    }),
-    prisma.class.findMany({
-      include: {
-        grade: true,
-      },
-      orderBy: { name: 'asc' },
-    }),
   ]);
 
-  // Sort options for teachers
-  const sortOptions = [
-    { value: "name-asc", label: "Name (A-Z)", field: "name", direction: "asc" as const },
-    { value: "name-desc", label: "Name (Z-A)", field: "name", direction: "desc" as const },
-    { value: "email-asc", label: "Email (A-Z)", field: "email", direction: "asc" as const },
-    { value: "email-desc", label: "Email (Z-A)", field: "email", direction: "desc" as const },
-    { value: "phone-asc", label: "Phone (A-Z)", field: "phone", direction: "asc" as const },
-    { value: "phone-desc", label: "Phone (Z-A)", field: "phone", direction: "desc" as const },
-    { value: "createdAt-asc", label: "Oldest First", field: "createdAt", direction: "asc" as const },
-    { value: "createdAt-desc", label: "Newest First", field: "createdAt", direction: "desc" as const },
-  ];
-
-  // Filter options for teachers
-  const filterGroups = [
-    {
-      title: "Subject",
-      param: "subjectId",
-      options: subjects.map(subject => ({
-        value: subject.id.toString(),
-        label: subject.name,
-        param: "subjectId"
-      }))
-    },
-    {
-      title: "Class (Supervisor)",
-      param: "supervisorClass",
-      options: classes.map(cls => ({
-        value: cls.id.toString(),
-        label: `${cls.name} (Grade ${cls.grade.level})`,
-        param: "supervisorClass"
-      }))
-    },
-    {
-      title: "Gender",
-      param: "sex",
-      options: [
-        { value: "MALE", label: "Male", param: "sex" },
-        { value: "FEMALE", label: "Female", param: "sex" }
-      ]
-    }
-  ];
+  
 
   return (
-    <div className="bg-white p-4 flex-1  w-full h-full">
+    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       {/* TOP */}
       <div className="flex items-center justify-between">
         <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
