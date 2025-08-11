@@ -5,12 +5,22 @@ import EventCalendarContainer from "@/components/EventCalendarContainer";
 import FinanceChart from "@/components/FinanceChart";
 import UserCard from "@/components/UserCard";
 import prisma from "@/lib/prisma";
+import { getUserRoleSync } from "@/lib/getUserRole";
+import { redirect } from "next/navigation";
 
 const AdminPage = async ({
   searchParams,
 }: {
   searchParams: { [keys: string]: string | undefined };
 }) => {
+  // Check if user has admin role
+  const userRole = await getUserRoleSync();
+  
+  // Redirect non-admin users to their appropriate dashboard
+  if (userRole !== 'admin') {
+    redirect(`/${userRole}`);
+  }
+
   // Fetch real data from database
   const [
     totalStudents,
@@ -44,7 +54,7 @@ const AdminPage = async ({
   });
 
   const totalAttendanceRecords = attendanceData.length;
-  const presentRecords = attendanceData.filter(record => record.present).length;
+  const presentRecords = attendanceData.filter((record: { present: boolean }) => record.present).length;
   const attendancePercentage = totalAttendanceRecords > 0 
     ? Math.round((presentRecords / totalAttendanceRecords) * 100) 
     : 0;

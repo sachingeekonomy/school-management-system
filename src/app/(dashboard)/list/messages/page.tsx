@@ -4,6 +4,7 @@ import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import SortDropdown from "@/components/SortDropdown";
 import FilterDropdown from "@/components/FilterDropdown";
+import MessageActions from "@/components/MessageActions";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Prisma } from "@prisma/client";
@@ -64,7 +65,7 @@ const MessageListPage = async ({
       accessor: "status",
       className: "hidden md:table-cell",
     },
-    ...(role === "admin"
+    ...(role === "admin" || role === "teacher"
       ? [
           {
             header: "Actions",
@@ -74,16 +75,24 @@ const MessageListPage = async ({
       : []),
   ];
 
+
+
   const renderRow = (item: MessageList) => (
     <tr
       key={item.id}
-      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
+      className={`border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight ${
+        !item.isRead && item.receiverId === currentUserId ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+      }`}
     >
       <td className="flex items-center gap-4 p-4">
         <div className="flex flex-col">
-          <h3 className="font-semibold">{item.title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold">{item.title}</h3>
+            {!item.isRead && item.receiverId === currentUserId && (
+              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">NEW</span>
+            )}
+          </div>
           <p className="text-xs text-gray-500 line-clamp-2">{item.content}</p>
-          <p className="text-xs text-gray-400">Message #{item.id}</p>
         </div>
       </td>
       <td className="hidden md:table-cell">
@@ -109,19 +118,26 @@ const MessageListPage = async ({
       </td>
       <td className="hidden md:table-cell">
         <div className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
-          item.isRead ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+          item.isRead ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
         }`}>
-          {item.isRead ? "Read" : "Unread"}
+          {item.isRead ? "✓ Read" : "● Unread"}
         </div>
       </td>
       <td>
         <div className="flex items-center gap-2">
-          {role === "admin" && (
+          {(role === "admin" || role === "teacher") && (
             <>
               <FormContainer table="message" type="update" data={item} />
               <FormContainer table="message" type="delete" id={item.id} />
             </>
           )}
+                     {(role === "student" || role === "parent") && (
+             <MessageActions 
+               item={item} 
+               role={role} 
+               currentUserId={currentUserId!} 
+             />
+           )}
         </div>
       </td>
     </tr>
@@ -206,11 +222,21 @@ const MessageListPage = async ({
     receiverRole: item.receiver.role,
   }));
 
+  // Calculate unread count for current user
+  const unreadCount = data.filter(item => !item.isRead && item.receiverId === currentUserId).length;
+
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
-        <h1 className="hidden md:block text-lg font-semibold">All Messages</h1>
+        <h1 className="hidden md:block text-lg font-semibold">
+          {role === "admin" || role === "teacher" ? "All Messages" : "My Messages"}
+          {unreadCount > 0 && (
+            <span className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded-full">
+              {unreadCount} unread
+            </span>
+          )}
+        </h1>
         {/* Debug info - remove this after testing */}
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
@@ -222,7 +248,7 @@ const MessageListPage = async ({
               { value: "title-asc", label: "Title (A-Z)", field: "title", direction: "asc" },
               { value: "title-desc", label: "Title (Z-A)", field: "title", direction: "desc" }
             ]} />
-            {role === "admin" ? (
+            {role === "admin" || role === "teacher" ? (
               <div className="flex items-center gap-2">
                 <FormContainer table="message" type="create" />
                 <span className="text-sm font-medium text-green-600">Click + to send message</span>
@@ -233,7 +259,7 @@ const MessageListPage = async ({
                   className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md text-sm font-medium cursor-not-allowed"
                   disabled
                 >
-                  Send Message (Admin Only)
+                  Send Message (Teachers & Admins Only)
                 </button>
               </div>
             )}

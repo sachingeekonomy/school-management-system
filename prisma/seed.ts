@@ -108,6 +108,28 @@ async function main() {
     });
   }
 
+  // Add a specific parent for testing
+  await prisma.parent.upsert({
+    where: { id: "parent_test" },
+    update: {
+      username: "parent_test",
+      name: "John",
+      surname: "Doe",
+      email: "john.doe@example.com",
+      phone: "555-123-4567",
+      address: "123 Main Street, City, State 12345",
+    },
+    create: {
+      id: "parent_test",
+      username: "parent_test",
+      name: "John",
+      surname: "Doe",
+      email: "john.doe@example.com",
+      phone: "555-123-4567",
+      address: "123 Main Street, City, State 12345",
+    },
+  });
+
   // STUDENT
   for (let i = 1; i <= 50; i++) {
     await prisma.student.create({

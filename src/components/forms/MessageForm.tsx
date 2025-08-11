@@ -76,7 +76,7 @@ const MessageForm = ({
               error={errors.title} 
             />
             <div className="flex flex-col gap-2 w-full">
-              <label className="text-xs text-gray-500">To (Receiver)</label>
+              <label className="text-xs text-gray-500">To (Recipient)</label>
               <select 
                 className="ring-[1.5px] ring-gray-300 p-3 rounded-md text-sm w-full" 
                 {...register("receiverId")} 
@@ -85,7 +85,7 @@ const MessageForm = ({
                 <option value="">Select a recipient</option>
                 {users?.map((user: { id: string; name: string; surname: string; role: string }) => (
                   <option value={user.id} key={user.id}>
-                    {user.name} {user.surname} ({user.role})
+                    {user.name} {user.surname} - {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
                   </option>
                 ))}
               </select>

@@ -832,15 +832,31 @@ export const createParent = async (
   try {
     console.log("Creating parent with data:", data);
     
-    // Generate a unique ID for the parent (since we're bypassing Clerk)
-    const parentId = `parent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Create user in Clerk if username and password are provided
+    let userId: string;
     
-    console.log("Generated parent ID:", parentId);
+    if (data.username && data.password) {
+      const user = await clerkClient.users.createUser({
+        username: data.username,
+        password: data.password,
+        firstName: data.name,
+        lastName: data.surname,
+        emailAddress: data.email ? [data.email] : ["test@example.com"],
+        phoneNumber: data.phone ? [data.phone] : ["+15551234567"],
+        publicMetadata: { role: "parent" }
+      });
+      userId = user.id;
+    } else {
+      // Generate a unique ID for the parent (fallback for when no auth details provided)
+      userId = `parent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    console.log("Generated parent ID:", userId);
 
     // Prepare parent data
     const parentData: any = {
-      id: parentId,
-      username: `${data.name.toLowerCase()}_${data.surname.toLowerCase()}_${Date.now()}`,
+      id: userId,
+      username: data.username || `${data.name.toLowerCase()}_${data.surname.toLowerCase()}_${Date.now()}`,
       name: data.name,
       surname: data.surname,
       email: data.email || null,
@@ -854,9 +870,21 @@ export const createParent = async (
 
     console.log("Parent created successfully");
     return { success: true, error: false };
-  } catch (err) {
-    console.error("Error creating parent:", err);
-    return { success: false, error: true };
+  } catch (err: any) {
+    console.log(err);
+    
+    // Handle specific Clerk errors
+    if (err.errors && err.errors.length > 0) {
+      const errorMessage = err.errors[0].message;
+      return { success: false, error: true, message: errorMessage };
+    }
+    
+    // Handle other types of errors
+    if (err.message) {
+      return { success: false, error: true, message: err.message };
+    }
+    
+    return { success: false, error: true, message: "Failed to create parent" };
   }
 };
 
@@ -865,7 +893,7 @@ export const updateParent = async (
   data: ParentSchema
 ) => {
   if (!data.id) {
-    return { success: false, error: true };
+    return { success: false, error: true, message: "Parent ID is required" };
   }
   try {
     console.log("Updating parent with data:", data);
@@ -884,10 +912,10 @@ export const updateParent = async (
     });
 
     console.log("Parent updated successfully");
-    return { success: true, error: false };
-  } catch (err) {
+    return { success: true, error: false, message: "" };
+  } catch (err: any) {
     console.error("Error updating parent:", err);
-    return { success: false, error: true };
+    return { success: false, error: true, message: err.message || "Failed to update parent" };
   }
 };
 
@@ -1248,6 +1276,103 @@ export const deleteEvent = async (
   }
 };
 
+// Helper function to ensure user exists in User table
+const ensureUserExists = async (userId: string, role: string) => {
+  try {
+    // Check if user already exists in User table
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (existingUser) {
+      return existingUser;
+    }
+
+    // Get user data from role-specific table
+    let userData: any = null;
+    
+    if (role === "teacher") {
+      userData = await prisma.teacher.findUnique({
+        where: { id: userId },
+        select: { id: true, username: true, name: true, surname: true, email: true, phone: true }
+      });
+    } else if (role === "student") {
+      userData = await prisma.student.findUnique({
+        where: { id: userId },
+        select: { id: true, username: true, name: true, surname: true, email: true, phone: true }
+      });
+    } else if (role === "parent") {
+      userData = await prisma.parent.findUnique({
+        where: { id: userId },
+        select: { id: true, username: true, name: true, surname: true, email: true, phone: true }
+      });
+    } else if (role === "admin") {
+      userData = await prisma.admin.findUnique({
+        where: { id: userId },
+        select: { id: true, username: true }
+      });
+    }
+
+    // If user not found in role-specific tables, it might be a Clerk user
+    if (!userData) {
+      // Try to get user info from Clerk
+      try {
+        const { clerkClient } = await import("@clerk/nextjs/server");
+        const clerkUser = await clerkClient.users.getUser(userId);
+        
+        // Create user in User table with Clerk data
+        const newUser = await prisma.user.create({
+          data: {
+            id: userId,
+            username: clerkUser.username || `user_${userId.slice(-8)}`,
+            name: clerkUser.firstName || "User",
+            surname: clerkUser.lastName || "Unknown",
+            email: clerkUser.emailAddresses[0]?.emailAddress || null,
+            phone: clerkUser.phoneNumbers[0]?.phoneNumber || null,
+            role: role.toUpperCase() as any,
+          }
+        });
+        
+        return newUser;
+      } catch (clerkError) {
+        console.error("Error getting user from Clerk:", clerkError);
+        // Create a fallback user entry
+        const newUser = await prisma.user.create({
+          data: {
+            id: userId,
+            username: `user_${userId.slice(-8)}`,
+            name: "User",
+            surname: "Unknown",
+            email: null,
+            phone: null,
+            role: role.toUpperCase() as any,
+          }
+        });
+        
+        return newUser;
+      }
+    }
+
+    // Create user in User table
+    const newUser = await prisma.user.create({
+      data: {
+        id: userData.id,
+        username: userData.username,
+        name: userData.name || "Admin",
+        surname: userData.surname || userData.username,
+        email: userData.email || null,
+        phone: userData.phone || null,
+        role: role.toUpperCase() as any,
+      }
+    });
+
+    return newUser;
+  } catch (error) {
+    console.error("Error ensuring user exists:", error);
+    throw error;
+  }
+};
+
 export const createMessage = async (
   currentState: CurrentState,
   data: MessageSchema
@@ -1255,15 +1380,52 @@ export const createMessage = async (
   try {
     console.log("Creating message with data:", data);
     
-    // For now, we'll use a placeholder senderId since we need to get it from the current user
-    // In a real implementation, you'd get this from the authenticated user
-    const senderId = "admin_user_id"; // This should come from auth context
+    // Get the current user ID from auth
+    const { userId } = await import("@clerk/nextjs/server").then(m => m.auth());
+    
+    if (!userId) {
+      console.error("No authenticated user found");
+      return { success: false, error: true, message: "Authentication required" };
+    }
+
+    // Get current user's role
+    const { getUserRoleSync } = await import("@/lib/getUserRole");
+    const senderRole = await getUserRoleSync();
+    
+    if (!senderRole) {
+      console.error("Could not determine sender role");
+      return { success: false, error: true, message: "Could not determine user role" };
+    }
+
+    // Ensure sender exists in User table
+    await ensureUserExists(userId, senderRole);
+
+    // Determine receiver role and ensure receiver exists in User table
+    let receiverRole = "admin"; // default
+    if (data.receiverId.startsWith("teacher_")) {
+      receiverRole = "teacher";
+    } else if (data.receiverId.startsWith("parent_")) {
+      receiverRole = "parent";
+    } else if (data.receiverId.includes("admin")) {
+      receiverRole = "admin";
+    } else {
+      // Check if it's a student (Clerk ID)
+      const student = await prisma.student.findUnique({
+        where: { id: data.receiverId },
+        select: { id: true }
+      });
+      if (student) {
+        receiverRole = "student";
+      }
+    }
+
+    await ensureUserExists(data.receiverId, receiverRole);
     
     await prisma.message.create({
       data: {
         title: data.title,
         content: data.content,
-        senderId: senderId,
+        senderId: userId,
         receiverId: data.receiverId,
       },
     });
@@ -1399,6 +1561,39 @@ export const deleteAnnouncement = async (
     return { success: true, error: false };
   } catch (err) {
     console.error("Error deleting announcement:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const markMessageAsRead = async (
+  currentState: CurrentState,
+  data: { messageId: number }
+) => {
+  try {
+    console.log("Marking message as read:", data.messageId);
+    
+    // Get the current user ID from auth
+    const { userId } = await import("@clerk/nextjs/server").then(m => m.auth());
+    
+    if (!userId) {
+      console.error("No authenticated user found");
+      return { success: false, error: true, message: "Authentication required" };
+    }
+    
+    await prisma.message.update({
+      where: {
+        id: data.messageId,
+        receiverId: userId, // Only allow marking messages as read if user is the receiver
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    console.log("Message marked as read successfully");
+    return { success: true, error: false };
+  } catch (err) {
+    console.error("Error marking message as read:", err);
     return { success: false, error: true };
   }
 };

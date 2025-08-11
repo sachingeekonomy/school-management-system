@@ -36,6 +36,7 @@ const ParentForm = ({
     {
       success: false,
       error: false,
+      message: "",
     }
   );
 
@@ -55,72 +56,120 @@ const ParentForm = ({
   }, [state, router, type, setOpen]);
 
   return (
-    <form className="flex flex-col gap-8 p-4 " onSubmit={onSubmit}>
-      <h1 className="text-xl font-semibold mb-2">
-        {type === "create" ? "Create a new parent" : "Update the parent"}
-      </h1>
+    <form className="flex flex-col gap-6 max-h-[80vh] overflow-y-auto px-6 py-4" onSubmit={onSubmit}>
+      <div className="flex items-center justify-between sticky top-0 bg-white pb-4 border-b -mx-6 px-6">
+        <h1 className="text-xl font-semibold">
+          {type === "create" ? "Create a new parent" : "Update the parent"}
+        </h1>
+      </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="First Name"
-            name="name"
-            defaultValue={data?.name}
-            register={register}
-            error={errors?.name}
-          />
-          <InputField
-            label="Last Name"
-            name="surname"
-            defaultValue={data?.surname}
-            register={register}
-            error={errors?.surname}
-          />
-          {data && (
+      <div className="space-y-6">
+        {type === "create" && (
+          <div>
+            <span className="text-xs text-gray-400 font-medium">Authentication Information</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+              <InputField
+                label="Username"
+                name="username"
+                defaultValue={data?.username}
+                register={register}
+                error={errors?.username}
+              />
+              <InputField
+                label="Email"
+                name="email"
+                type="email"
+                defaultValue={data?.email}
+                register={register}
+                error={errors?.email}
+              />
+              <InputField
+                label="Password"
+                name="password"
+                type="password"
+                defaultValue={data?.password}
+                register={register}
+                error={errors?.password}
+              />
+            </div>
+          </div>
+        )}
+
+        <div>
+          <span className="text-xs text-gray-400 font-medium">Basic Information</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             <InputField
-              label="Id"
-              name="id"
-              defaultValue={data?.id}
+              label="First Name"
+              name="name"
+              defaultValue={data?.name}
               register={register}
-              error={errors?.id}
-              hidden
+              error={errors?.name}
             />
-          )}
+            <InputField
+              label="Last Name"
+              name="surname"
+              defaultValue={data?.surname}
+              register={register}
+              error={errors?.surname}
+            />
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="Email"
-            name="email"
-            type="email"
-            defaultValue={data?.email}
-            register={register}
-            error={errors?.email}
-          />
-          <InputField
-            label="Phone"
-            name="phone"
-            defaultValue={data?.phone}
-            register={register}
-            error={errors?.phone}
-          />
+        <div>
+          <span className="text-xs text-gray-400 font-medium">Contact Information</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <InputField
+              label="Phone"
+              name="phone"
+              defaultValue={data?.phone}
+              register={register}
+              error={errors?.phone}
+            />
+            <InputField
+              label="Address"
+              name="address"
+              defaultValue={data?.address}
+              register={register}
+              error={errors?.address}
+            />
+          </div>
         </div>
 
-        <InputField
-          label="Address"
-          name="address"
-          defaultValue={data?.address}
-          register={register}
-          error={errors?.address}
-        />
+        {data && (
+          <InputField
+            label="Id"
+            name="id"
+            defaultValue={data?.id}
+            register={register}
+            error={errors?.id}
+            hidden
+          />
+        )}
       </div>
       
       {state.error && (
-        <span className="text-red-500 text-sm">Something went wrong!</span>
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm font-medium">
+            {state.message || "Something went wrong!"}
+          </p>
+        </div>
       )}
-      <button className="bg-lamaSky text-white p-3 rounded-md font-medium hover:bg-lamaSky/90 transition-colors mt-2">
-        {type === "create" ? "Create Parent" : "Update Parent"}
-      </button>
+      
+      <div className="flex items-center justify-end gap-3 pt-4 border-t -mx-6 px-6">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          className="px-6 py-2 bg-blue-400 text-white rounded-md hover:bg-lamaSky/90 transition-colors font-medium"
+        >
+          {type === "create" ? "Create Parent" : "Update Parent"}
+        </button>
+      </div>
     </form>
   );
 };

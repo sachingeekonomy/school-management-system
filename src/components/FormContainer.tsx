@@ -174,14 +174,130 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         relatedData = { classes: eventClasses };
         break;
       case "message":
-        const messageUsers = await prisma.user.findMany({
-          select: {
-            id: true,
-            name: true,
-            surname: true,
-            role: true,
-          },
+        // Only teachers and admins can send messages
+        if (finalRole !== "admin" && finalRole !== "teacher") {
+          relatedData = { users: [] };
+          break;
+        }
+
+        // Filter users based on current user's role for messaging
+        let allowedRoles: string[] = [];
+        
+        switch (finalRole) {
+          case "admin":
+            // Admin can message everyone
+            allowedRoles = ["admin", "teacher", "student", "parent"];
+            break;
+          case "teacher":
+            // Teachers can message students, parents, and other teachers
+            allowedRoles = ["teacher", "student", "parent"];
+            break;
+          default:
+            // Default to admin permissions
+            allowedRoles = ["admin", "teacher", "student", "parent"];
+        }
+
+        // Fetch users from different tables based on allowed roles
+        const messageUsers: any[] = [];
+
+        // Fetch teachers if allowed
+        if (allowedRoles.includes("teacher")) {
+          const teachers = await prisma.teacher.findMany({
+            where: {
+              id: {
+                not: currentUserId!,
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              surname: true,
+            },
+            orderBy: [
+              { name: 'asc' },
+              { surname: 'asc' }
+            ],
+          });
+          messageUsers.push(...teachers.map((teacher: any) => ({ ...teacher, role: "TEACHER" })));
+        }
+
+        // Fetch students if allowed
+        if (allowedRoles.includes("student")) {
+          const students = await prisma.student.findMany({
+            where: {
+              id: {
+                not: currentUserId!,
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              surname: true,
+            },
+            orderBy: [
+              { name: 'asc' },
+              { surname: 'asc' }
+            ],
+          });
+          messageUsers.push(...students.map((student: any) => ({ ...student, role: "STUDENT" })));
+        }
+
+        // Fetch parents if allowed
+        if (allowedRoles.includes("parent")) {
+          const parents = await prisma.parent.findMany({
+            where: {
+              id: {
+                not: currentUserId!,
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              surname: true,
+            },
+            orderBy: [
+              { name: 'asc' },
+              { surname: 'asc' }
+            ],
+          });
+          messageUsers.push(...parents.map((parent: any) => ({ ...parent, role: "PARENT" })));
+        }
+
+        // Fetch admins if allowed (for now, we'll use a placeholder since admin table is minimal)
+        if (allowedRoles.includes("admin")) {
+          const admins = await prisma.admin.findMany({
+            where: {
+              id: {
+                not: currentUserId!,
+              },
+            },
+            select: {
+              id: true,
+              username: true,
+            },
+            orderBy: {
+              username: 'asc'
+            },
+          });
+          messageUsers.push(...admins.map((admin: any) => ({ 
+            id: admin.id, 
+            name: "Admin", 
+            surname: admin.username, 
+            role: "ADMIN" 
+          })));
+        }
+
+        // Sort all users by role, then by name
+        messageUsers.sort((a, b) => {
+          if (a.role !== b.role) {
+            return a.role.localeCompare(b.role);
+          }
+          if (a.name !== b.name) {
+            return a.name.localeCompare(b.name);
+          }
+          return a.surname.localeCompare(b.surname);
         });
+
         relatedData = { users: messageUsers };
         break;
       case "announcement":

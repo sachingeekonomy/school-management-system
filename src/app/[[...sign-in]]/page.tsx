@@ -5,10 +5,12 @@ import * as SignIn from "@clerk/elements/sign-in";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const LoginPage = () => {
   const { isLoaded, isSignedIn, user } = useUser();
+  const [showPassword, setShowPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('admin');
 
   const router = useRouter();
 
@@ -23,30 +25,15 @@ const LoginPage = () => {
       console.log('User publicMetadata:', user.publicMetadata);
       console.log('==================');
 
-      // Wait a bit for session to fully load
-      const redirectWithRole = () => {
-        // First try to get role from publicMetadata
-        let role = user?.publicMetadata?.role;
-        
-        // If no role in metadata, determine from username as fallback
-        if (!role) {
-          const username = user?.username?.toLowerCase();
-          role = 'admin'; // default
-          
-          if (username?.includes('teacher')) {
-            role = 'teacher';
-          } else if (username?.includes('student')) {
-            role = 'student';
-          } else if (username?.includes('parent')) {
-            role = 'parent';
-          }
-        }
-
-        console.log('User role from metadata:', user?.publicMetadata?.role);
-        console.log('Determined role:', role);
-        console.log('Redirecting to:', `/${role}`);
-        router.push(`/${role}`);
-      };
+             // Wait a bit for session to fully load
+       const redirectWithRole = () => {
+         // Use selected role from the form
+         const role = selectedRole;
+         
+         console.log('Selected role:', role);
+         console.log('Redirecting to:', `/${role}`);
+         router.push(`/${role}`);
+       };
 
       // Try immediate redirect
       redirectWithRole();
@@ -134,8 +121,8 @@ const LoginPage = () => {
             {/* Header */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="p-2 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg border border-white/30">
-                  <Image src="/logo.png" alt="" width={28} height={28} className="filter brightness-0 invert" />
+                <div className="p-2  backdrop-blur-sm rounded-2xl shadow-lg border border-white/30">
+                  <Image src="/logo.png" alt="" width={28} height={28} className="rounded-full" />
                 </div>
                 <h1 className="text-white text-xl md:text-2xl font-bold">
                 FutureScholars
@@ -146,10 +133,36 @@ const LoginPage = () => {
               </h2>
             </div>
 
-            <Clerk.GlobalError className="text-sm text-red-400 bg-red-500/20 p-3 rounded-xl border border-red-400/30" />
-            
-            {/* Email Field */}
-            <Clerk.Field name="identifier" className="relative">
+                         <Clerk.GlobalError className="text-sm text-red-400 bg-red-500/20 p-3 rounded-xl border border-red-400/30" />
+             
+             {/* Role Selection */}
+             <div className="space-y-2">
+               <label className="text-white/90 text-sm font-medium">Login as:</label>
+                               <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'teacher', label: 'Teacher' },
+                    { value: 'student', label: 'Student' },
+                    { value: 'parent', label: 'Parent' }
+                  ].map((role) => (
+                    <button
+                      key={role.value}
+                      type="button"
+                      onClick={() => setSelectedRole(role.value)}
+                      className={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-center ${
+                        selectedRole === role.value
+                          ? 'border-white/70 bg-white/20 text-white'
+                          : 'border-white/30 bg-transparent text-white/70 hover:border-white/50 hover:text-white'
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{role.label}</span>
+                    </button>
+                  ))}
+                </div>
+             </div>
+             
+             {/* Email Field */}
+             <Clerk.Field name="identifier" className="relative">
               <Clerk.Input
                 type="text"
                 required
@@ -165,14 +178,31 @@ const LoginPage = () => {
             {/* Password Field */}
             <Clerk.Field name="password" className="relative">
               <Clerk.Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
-                className="peer w-full p-4 pt-6 rounded-xl bg-transparent border-2 border-white/30 focus:border-white/70 focus:ring-0 transition-all duration-200 outline-none text-white placeholder-transparent"
+                className="peer w-full p-4 pt-6 pr-12 rounded-xl bg-transparent border-2 border-white/30 focus:border-white/70 focus:ring-0 transition-all duration-200 outline-none text-white placeholder-transparent"
                 placeholder="Password"
               />
               <Clerk.Label className="absolute left-4 top-2 text-xs font-medium text-white/70 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/50 peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white/90">
                 Password
               </Clerk.Label>
+              {/* Show/Hide Password Button */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-200"
+              >
+                {showPassword ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
               <Clerk.FieldError className="text-sm text-red-400 p-2 rounded-lg mt-1" />
             </Clerk.Field>
 
