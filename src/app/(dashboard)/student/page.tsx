@@ -1,9 +1,10 @@
 import Announcements from "@/components/Announcements";
 import BigCalendarContainer from "@/components/BigCalendarContainer";
-import BigCalendar from "@/components/BigCalender";
 import EventCalendar from "@/components/EventCalendar";
+import PaymentDashboard from "@/components/PaymentDashboard";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { GraduationCap, Calendar, CreditCard, BookOpen } from "lucide-react";
 
 const StudentPage = async () => {
   const { userId } = auth();
@@ -20,8 +21,8 @@ const StudentPage = async () => {
   // If student doesn't exist or has no class, show a message
   if (!student || !student.class) {
     return (
-      <div className="p-4">
-        <div className="bg-white p-8 rounded-md shadow-lg">
+      <div className="p-6">
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Student Dashboard</h1>
           <p className="text-gray-600">
             {!student 
@@ -35,18 +36,55 @@ const StudentPage = async () => {
   }
 
   return (
-    <div className="p-4 flex gap-4 flex-col xl:flex-row">
-      {/* LEFT */}
-      <div className="w-full xl:w-2/3">
-        <div className="h-full bg-white p-4 rounded-md">
-          <h1 className="text-xl font-semibold">Schedule ({student.class.name})</h1>
-          <BigCalendarContainer type="classId" id={student.class.id} />
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-xl shadow-lg">
+        <div className="flex items-center space-x-4">
+          <div className="bg-white/20 p-3 rounded-lg">
+            <GraduationCap className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Welcome back, {student.name}!</h1>
+            <p className="text-blue-100">Class {student.class.name} • Student Dashboard</p>
+          </div>
         </div>
       </div>
-      {/* RIGHT */}
-      <div className="w-full xl:w-1/3 flex flex-col gap-8">
-        <EventCalendar />
-        <Announcements />
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Main Content - Schedule & Payments */}
+        <div className="xl:col-span-2 space-y-6">
+          {/* Schedule Section */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-6 h-6 text-blue-600" />
+                <h2 className="text-xl font-semibold text-gray-800">Class Schedule</h2>
+              </div>
+            </div>
+            <div className="p-6">
+              <BigCalendarContainer type="classId" id={student.class.id} />
+            </div>
+          </div>
+          
+          {/* Payment Dashboard */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-50 to-green-50 px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <CreditCard className="w-6 h-6 text-green-600" />
+                <h2 className="text-xl font-semibold text-gray-800">Payment Dashboard</h2>
+              </div>
+            </div>
+            <div className="p-6">
+              <PaymentDashboard studentId={student.id} userRole="STUDENT" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <EventCalendar />
+          <Announcements />
+        </div>
       </div>
     </div>
   );

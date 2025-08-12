@@ -54,7 +54,7 @@ const SubjectForm = ({
     }
   }, [state, router, type, setOpen]);
 
-  const { teachers } = relatedData;
+  const { teachers = [] } = relatedData || {};
 
   return (
     <form className="flex flex-col gap-8 p-4" onSubmit={onSubmit}>
@@ -87,7 +87,7 @@ const SubjectForm = ({
           <label className="text-sm font-medium text-gray-700">Assign Teachers</label>
           <p className="text-xs text-gray-500 mb-2">Select one or more teachers to assign to this subject:</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-40 overflow-y-auto p-3 border border-gray-300 rounded-md bg-gray-50">
-            {teachers.map(
+            {teachers?.map(
               (teacher: { id: string; name: string; surname: string }) => (
                 <label key={teacher.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-white p-2 rounded-md transition-colors">
                   <input

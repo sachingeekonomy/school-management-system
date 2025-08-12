@@ -194,13 +194,25 @@ export async function GET() {
   try {
     const students = await prisma.student.findMany({
       include: {
-        class: true,
+        class: {
+          include: {
+            grade: {
+              select: {
+                level: true
+              }
+            }
+          }
+        },
         grade: true,
         parent: true,
       },
+      orderBy: [
+        { name: 'asc' },
+        { surname: 'asc' }
+      ],
     });
 
-    return NextResponse.json(students);
+    return NextResponse.json({ students });
   } catch (error) {
     console.error('Error fetching students:', error);
     return NextResponse.json(

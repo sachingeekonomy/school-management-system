@@ -123,8 +123,8 @@ const TeacherListPage = async ({
           </Link>
           {finalRole === "admin" && (
             <>
-              <FormContainer table="teacher" type="update" data={item} />
-              <FormContainer table="teacher" type="delete" id={item.id} />
+              <FormContainer key={`teacher-update-${item.id}`} table="teacher" type="update" data={item} />
+              <FormContainer key={`teacher-delete-${item.id}`} table="teacher" type="delete" id={item.id} />
             </>
           )}
         </div>
@@ -228,7 +228,9 @@ const TeacherListPage = async ({
     prisma.teacher.count({ where: query }),
   ]);
 
-  
+  console.log("Teachers data:", data);
+  console.log("Teachers count:", data.length);
+  console.log("Unique IDs:", [...new Set(data.map(item => item.id))]);
 
   return (
     <div className="bg-white p-4 flex-1  w-full h-full">
