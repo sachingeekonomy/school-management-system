@@ -149,9 +149,9 @@ const AnnouncementListPage = async ({
   ]);
 
   return (
-    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between " >
         <h1 className="hidden md:block text-lg font-semibold">
           All Announcements
         </h1>

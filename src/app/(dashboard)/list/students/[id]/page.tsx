@@ -156,7 +156,7 @@ const SingleStudentPage = async ({
         {/* TOP */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* USER INFO CARD */}
-          <div className="bg-lamaPurple py-6 px-4 rounded-md flex-1 flex gap-4">
+          <div className="bg-lamaSky py-6 px-4 rounded-md flex-1 flex gap-4">
             <div className="w-1/3">
               <Image
                 src={student.img || "/noAvatar.png"}
@@ -219,126 +219,173 @@ const SingleStudentPage = async ({
               </div>
             </div>
           </div>
-                     {/* SMALL CARDS */}
-           <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
-             {/* Attendance Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/singleAttendance.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{attendancePercentage}%</h1>
-                 <span className="text-sm text-gray-400">Attendance Rate</span>
-               </div>
-             </div>
-             {/* Average Score Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/result.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{averageScore}%</h1>
-                 <span className="text-sm text-gray-400">Average Score</span>
-               </div>
-             </div>
-             {/* Recent Performance Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/result.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{recentPerformance}%</h1>
-                 <span className="text-sm text-gray-400">Recent Performance</span>
-               </div>
-             </div>
-             {/* Total Lessons Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/lesson.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalLessons}</h1>
-                 <span className="text-sm text-gray-400">Lessons Attended</span>
-               </div>
-             </div>
-             {/* Exams Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/exam.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalExams}</h1>
-                 <span className="text-sm text-gray-400">Exams Taken</span>
-               </div>
-             </div>
-             {/* Assignments Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/assignment.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalAssignments}</h1>
-                 <span className="text-sm text-gray-400">Assignments</span>
-               </div>
-             </div>
-             {/* Grade Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/class.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">Grade {student.grade.level}</h1>
-                 <span className="text-sm text-gray-400">Current Grade</span>
-               </div>
-             </div>
-             {/* Age Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/date.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">
-                   {new Date().getFullYear() - new Date(student.birthday).getFullYear()}
-                 </h1>
-                 <span className="text-sm text-gray-400">Age</span>
-               </div>
-             </div>
-           </div>
         </div>
+
+        {/* STUDENT STATISTICS SECTION */}
+        <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <Image src="/dashboard bg.png" alt="" width={24} height={24} />
+            <h2 className="text-xl font-semibold text-gray-800">Student Statistics</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* Attendance Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500 rounded-lg">
+                  <Image
+                    src="/singleAttendance.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-blue-900">{attendancePercentage}%</h3>
+                  <p className="text-sm text-blue-700 font-medium">Attendance Rate</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Average Score Card */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-500 rounded-lg">
+                  <Image
+                    src="/result.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-green-900">{averageScore}%</h3>
+                  <p className="text-sm text-green-700 font-medium">Average Score</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Performance Card */}
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-500 rounded-lg">
+                  <Image
+                    src="/result.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-purple-900">{recentPerformance}%</h3>
+                  <p className="text-sm text-purple-700 font-medium">Recent Performance</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Lessons Card */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-orange-500 rounded-lg">
+                  <Image
+                    src="/lesson.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-orange-900">{totalLessons}</h3>
+                  <p className="text-sm text-orange-700 font-medium">Lessons Attended</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Exams Card */}
+            <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-500 rounded-lg">
+                  <Image
+                    src="/exam.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-red-900">{totalExams}</h3>
+                  <p className="text-sm text-red-700 font-medium">Exams Taken</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Assignments Card */}
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl border border-indigo-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-indigo-500 rounded-lg">
+                  <Image
+                    src="/assignment.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-indigo-900">{totalAssignments}</h3>
+                  <p className="text-sm text-indigo-700 font-medium">Assignments</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Grade Card */}
+            <div className="bg-gradient-to-br from-teal-50 to-teal-100 p-6 rounded-xl border border-teal-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-teal-500 rounded-lg">
+                  <Image
+                    src="/class.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-teal-900">Grade {student.grade.level}</h3>
+                  <p className="text-sm text-teal-700 font-medium">Current Grade</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Age Card */}
+            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-6 rounded-xl border border-cyan-200">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-cyan-500 rounded-lg">
+                  <Image
+                    src="/date.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold text-cyan-900">
+                    {new Date().getFullYear() - new Date(student.birthday).getFullYear()}
+                  </h3>
+                  <p className="text-sm text-cyan-700 font-medium">Age</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* STUDENT DETAILS SECTIONS */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Academic Information Section */}
           <div className="bg-white rounded-md p-4">
             <div className="flex items-center gap-2 mb-4">

@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import Image from "next/image";
+import ProfileEditForm from "@/components/ProfileEditForm";
 
 const ProfilePage = async () => {
   // Get user role and current user
@@ -49,23 +50,23 @@ const ProfilePage = async () => {
           classes: true
         }
       });
-          console.log("Teacher data fetched by email:", userData);
-  }
-  
-  // For debugging: if no teacher data found, create a sample object
-  if (role === "teacher" && !userData) {
-    console.log("No teacher data found, creating sample data for debugging");
-    userData = {
-      name: "Sample Teacher",
-      surname: "One",
-      email: "teacher1@example.com",
-      phone: "123-456-7891",
-      bloodType: "A+",
-      birthday: new Date("1990-01-01"),
-      subjects: [],
-      classes: []
-    };
-  }
+      console.log("Teacher data fetched by email:", userData);
+    }
+    
+    // For debugging: if no teacher data found, create a sample object
+    if (role === "teacher" && !userData) {
+      console.log("No teacher data found, creating sample data for debugging");
+      userData = {
+        name: "Sample Teacher",
+        surname: "One",
+        email: "teacher1@example.com",
+        phone: "123-456-7891",
+        bloodType: "A+",
+        birthday: new Date("1990-01-01"),
+        subjects: [],
+        classes: []
+      };
+    }
   } else if (role === "parent" && userId) {
     userData = await prisma.parent.findUnique({
       where: { id: userId },
@@ -82,6 +83,9 @@ const ProfilePage = async () => {
       }
     });
   }
+
+  // Determine if user can edit profile (admin and teacher only)
+  const canEdit = role === "admin" || role === "teacher";
 
   return (
     <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
@@ -131,6 +135,13 @@ const ProfilePage = async () => {
             </div>
           </div>
         </div>
+
+        {/* Edit Profile Section - Only for admin and teacher */}
+        {canEdit && (
+          <div className="mt-4 bg-white p-4 rounded-md">
+            <ProfileEditForm userData={userData} role={role} />
+          </div>
+        )}
       </div>
 
       {/* RIGHT */}

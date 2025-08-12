@@ -182,12 +182,12 @@ const AdminPage = async ({
             {/* Enhanced Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               {/* Count Chart */}
-              <div className="lg:col-span-1 group relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-600 to-rose-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              <div className="lg:col-span-1 group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-24 translate-x-24"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
-                <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white/5 rounded-full animate-pulse"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+                <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-pulse"></div>
                 
                 <div className="relative p-8 text-white">
                   <div className="flex items-center gap-3 mb-6">
@@ -201,12 +201,11 @@ const AdminPage = async ({
               </div>
 
               {/* Attendance Chart */}
-              <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
-                <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-pulse"></div>
+              <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+                {/* Subtle Background Pattern */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/10"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-white/3 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
                 
                 <div className="relative p-8 text-white">
                   <div className="flex items-center gap-3 mb-6">
@@ -221,8 +220,7 @@ const AdminPage = async ({
             </div>
 
             {/* Enhanced Finance Chart Section */}
-            <div className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
-              {/* Background Pattern */}
+            {/* <div className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
               <div className="absolute inset-0 bg-black/10"></div>
               <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -translate-y-36 translate-x-36"></div>
               <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-28 -translate-x-28"></div>
@@ -237,7 +235,7 @@ const AdminPage = async ({
                   <FinanceChartContainer />
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* RIGHT SIDE - Enhanced Sidebar */}
@@ -262,17 +260,26 @@ const AdminPage = async ({
             </div>
 
             {/* Enhanced Announcements */}
-            <div className="group relative overflow-hidden bg-gradient-to-r from-orange-500 via-red-600 to-pink-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
-              {/* Subtle Background Pattern */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/10"></div>
-              <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-br from-white/4 to-transparent rounded-full -translate-y-18 translate-x-18"></div>
-              <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-white/3 to-transparent rounded-full translate-y-14 -translate-x-14"></div>
+            <div className="group relative overflow-hidden bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+              <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-pulse"></div>
               
-                              <div className="relative p-8 text-white">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
-                    <h3 className="text-xl font-bold text-white">Recent Announcements</h3>
+              <div className="relative p-8 text-white">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-white/80 rounded-full animate-pulse shadow-lg"></div>
+                    <h3 className="text-2xl font-bold text-white">Recent Announcements</h3>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-blue-100 bg-white/10 px-4 py-2 rounded-full font-medium border border-white/20">
+                      Live Data
+                    </div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
+                  </div>
+                </div>
                 <div className="transform group-hover:scale-[1.02] transition-transform duration-300">
                   <Announcements />
                 </div>
