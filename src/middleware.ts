@@ -1,47 +1,41 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { routeAccessMap } from "./lib/settings";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { routeAccessMap } from './lib/settings';
+import { getSessionFromRequest } from './lib/auth';
 
-const matchers = Object.keys(routeAccessMap).map((route) => ({
-  matcher: createRouteMatcher([route]),
-  allowedRoles: routeAccessMap[route],
-}));
+export default async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
 
-console.log(matchers);
+  // Allow access to login page and API routes
+  if (path === '/sign-in' || path.startsWith('/api/') || path.startsWith('/_next/') || path.includes('.')) {
+    return NextResponse.next();
+  }
 
-export default clerkMiddleware((auth, req) => {
-  // if (isProtectedRoute(req)) auth().protect()
+  // Get user session from cookies
+  const session = getSessionFromRequest(request);
+  
+  // If no session, redirect to login
+  if (!session) {
+    console.log(`No session found, redirecting to login`);
+    return NextResponse.redirect(new URL('/sign-in', request.url));
+  }
 
-  const { sessionClaims, userId } = auth();
+  const userRole = session.role;
+  console.log(`Middleware: User ${session.username} (${userRole}) accessing ${path}`);
 
-  // Try to get role from session claims
-  let role = (sessionClaims?.publicMetadata as { role?: string })?.role;
-
-  // If no role in session claims, try to get from user data
-  if (!role && userId) {
-    // For now, we'll use a fallback based on the route
-    // This is a temporary fix until we can properly sync session claims
-    const path = req.nextUrl.pathname;
-    if (path.startsWith('/admin')) {
-      role = 'admin';
-    } else if (path.startsWith('/teacher')) {
-      role = 'teacher';
-    } else if (path.startsWith('/student')) {
-      role = 'student';
-    } else if (path.startsWith('/parent')) {
-      role = 'parent';
+  // Check route access based on user role
+  for (const [routePattern, allowedRoles] of Object.entries(routeAccessMap)) {
+    const regex = new RegExp(routePattern);
+    const isMatch = regex.test(path);
+    console.log(`Route check: ${path} matches ${routePattern} = ${isMatch}, allowed roles: ${allowedRoles.join(', ')}, user role: ${userRole}`);
+    
+    if (isMatch && !allowedRoles.includes(userRole)) {
+      console.log(`Access denied: ${userRole} cannot access ${path}`);
+      return NextResponse.redirect(new URL(`/${userRole}`, request.url));
     }
   }
 
-  // If role is still undefined, redirect to admin as default
-  const userRole = role || 'admin';
-
-  for (const { matcher, allowedRoles } of matchers) {
-    if (matcher(req) && !allowedRoles.includes(userRole)) {
-      return NextResponse.redirect(new URL(`/${userRole}`, req.url));
-    }
-  }
-});
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

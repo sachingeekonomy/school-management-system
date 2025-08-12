@@ -10,6 +10,7 @@ import { Prisma } from "@prisma/client";
 import Image from "next/image";
 
 import { getUserRoleSync } from "@/lib/getUserRole";
+import { getUserSession } from "@/lib/auth";
 
 type ResultList = {
   id: number;
@@ -34,7 +35,8 @@ const ResultListPage = async ({
 const role = await getUserRoleSync();
 
 // Still need userId for role-based filtering
-const { userId: currentUserId } = await import("@clerk/nextjs/server").then(m => m.auth());
+  const session = await getUserSession();
+  const currentUserId = session?.id;
 
 console.log("User role determined:", role);
 

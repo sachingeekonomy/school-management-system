@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import FormModal from "./FormModal";
-import { auth } from "@clerk/nextjs/server";
+import { getUserSession } from "@/lib/auth";
 
 export type FormContainerProps = {
   table:
@@ -25,9 +25,9 @@ export type FormContainerProps = {
 const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
   let relatedData = {};
 
-  const { userId, sessionClaims } = auth();
-  const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
-  const currentUserId = userId;
+  const session = await getUserSession();
+  const role = session?.role;
+  const currentUserId = session?.id;
   
   // Fallback role detection - if role is not detected from session, try to get from user metadata
   let finalRole = role;

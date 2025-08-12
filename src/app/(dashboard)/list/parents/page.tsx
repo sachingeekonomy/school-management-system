@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Parent, Prisma, Student } from "@prisma/client";
 import Image from "next/image";
-import { auth } from "@clerk/nextjs/server";
+import { getUserSession } from "@/lib/auth";
 
 type ParentList = Parent & { students: Student[] };
 
@@ -18,11 +18,11 @@ const ParentListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
 
-const { sessionClaims } = auth();
-const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
+const session = await getUserSession();
+const role = session?.role;
 
 // Debug logging
-console.log("Session claims:", sessionClaims);
+console.log("Session:", session);
 console.log("Role from metadata:", role);
 
 // Fallback: if role is undefined, try to get from user data

@@ -8,8 +8,7 @@ import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Announcement, Class, Prisma } from "@prisma/client";
 import Image from "next/image";
-import { getUserRoleSync } from "@/lib/getUserRole";
-
+import { getUserSession } from "@/lib/auth";
 
 type AnnouncementList = Announcement & { class: Class & { grade: { level: number } } };
 const AnnouncementListPage = async ({
@@ -18,11 +17,10 @@ const AnnouncementListPage = async ({
   searchParams: { [key: string]: string | undefined };
 }) => {
   
-  // Get user role using the new robust function
-  const role = await getUserRoleSync();
-  
-  // Still need userId for role-based filtering
-  const { userId: currentUserId } = await import("@clerk/nextjs/server").then(m => m.auth());
+  // Get user session using our custom authentication
+  const session = await getUserSession();
+  const role = session?.role;
+  const currentUserId = session?.id;
 
   console.log("User role determined:", role);
   

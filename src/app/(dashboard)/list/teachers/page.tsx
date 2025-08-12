@@ -10,7 +10,7 @@ import { Class, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { auth } from "@clerk/nextjs/server";
+import { getUserSession } from "@/lib/auth";
 
 type TeacherList = Teacher & { subjects: Subject[] } & { classes: Class[] };
 
@@ -19,13 +19,14 @@ const TeacherListPage = async ({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) => {
-  const { sessionClaims, userId } = auth();
-  const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
+  const session = await getUserSession();
+  const role = session?.role;
+  const userId = session?.id;
   
   // Debug logging
-  console.log("Session claims:", sessionClaims);
+  console.log("Session:", session);
   console.log("User ID:", userId);
-  console.log("Role from metadata:", role);
+  console.log("Role:", role);
   
   // Fallback: if role is undefined, try to get from user data
   let finalRole = role;

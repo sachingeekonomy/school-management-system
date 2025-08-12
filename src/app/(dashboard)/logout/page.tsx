@@ -1,23 +1,34 @@
 "use client";
 
-import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 const LogoutPage = () => {
-  const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await signOut();
-      // The user will be redirected automatically by Clerk
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        toast.success('Logged out successfully');
+        router.push('/sign-in');
+      } else {
+        toast.error('Logout failed');
+        setIsLoggingOut(false);
+      }
     } catch (error) {
       console.error("Error during logout:", error);
+      toast.error('An error occurred during logout');
       setIsLoggingOut(false);
     }
   };
@@ -34,17 +45,6 @@ const LogoutPage = () => {
       handleLogout();
     }
   }, []);
-
-  if (!isLoaded) {
-    return (
-      <div className="flex-1 p-4 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 p-4 flex items-center justify-center">
@@ -65,27 +65,25 @@ const LogoutPage = () => {
           </p>
         </div>
 
-        {user && (
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <Image
-                src={user.imageUrl || "/noAvatar.png"}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <div className="text-left">
-                <p className="font-medium text-gray-800">
-                  {user.firstName} {user.lastName}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {user.emailAddresses[0]?.emailAddress}
-                </p>
-              </div>
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Image
+              src="/noAvatar.png"
+              alt="Profile"
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div className="text-left">
+              <p className="font-medium text-gray-800">
+                User Account
+              </p>
+              <p className="text-sm text-gray-500">
+                School Management System
+              </p>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="flex gap-4">
           <button

@@ -3,10 +3,11 @@ import BigCalendarContainer from "@/components/BigCalendarContainer";
 import BigCalendar from "@/components/BigCalender";
 import EventCalendar from "@/components/EventCalendar";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getUserSession } from "@/lib/auth";
 
 const StudentPage = async () => {
-  const { userId } = auth();
+  const session = await getUserSession();
+  const userId = session?.id;
 
   // First, get the student record to find their class
   const student = await prisma.student.findUnique({

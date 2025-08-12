@@ -1,18 +1,42 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
-import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Search, Bell, MessageSquare, Menu, X } from "lucide-react";
+import { Search, Bell, MessageSquare, Menu, X, LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 const Navbar = () => {
-  const { user } = useUser();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3);
   const [messageCount, setMessageCount] = useState(2);
+  const [userData, setUserData] = useState<{
+    firstName: string;
+    lastName: string;
+    role: string;
+    username: string;
+  } | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Get user data from session
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data.user);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   // Close mobile menu when window is resized
   useEffect(() => {
@@ -31,6 +55,24 @@ const Navbar = () => {
     if (searchQuery.trim()) {
       // Implement search functionality here
       console.log("Searching for:", searchQuery);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        toast.success('Logged out successfully');
+        router.push('/sign-in');
+      } else {
+        toast.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('An error occurred during logout');
     }
   };
 
@@ -117,34 +159,50 @@ const Navbar = () => {
           <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
             <div className="flex flex-col text-right">
               <span className="text-sm font-semibold text-gray-800 leading-tight">
-                {user?.firstName} {user?.lastName}
+                {userData?.firstName} {userData?.lastName}
               </span>
               <span className="text-xs text-gray-500 capitalize">
-                {(user?.publicMetadata?.role as string) || "User"}
+                {userData?.role || "User"}
               </span>
             </div>
             <div className="relative">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-colors",
-                    userButtonPopoverCard: "shadow-lg border border-gray-200",
-                    userButtonPopoverActions: "bg-gray-50"
-                  }
-                }}
-              />
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-colors bg-gray-100 flex items-center justify-center"
+              >
+                <User className="w-5 h-5 text-gray-600" />
+              </button>
+              
+              {/* User Menu Dropdown */}
+              {showUserMenu && (
+                <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <button
+                    onClick={() => router.push('/profile')}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Mobile User Button */}
           <div className="sm:hidden">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9 rounded-lg border-2 border-gray-200"
-                }
-              }}
-            />
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-9 h-9 rounded-lg border-2 border-gray-200 bg-gray-100 flex items-center justify-center"
+            >
+              <User className="w-4 h-4 text-gray-600" />
+            </button>
           </div>
         </div>
       </div>
@@ -164,6 +222,34 @@ const Navbar = () => {
               />
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Mobile User Menu */}
+      {showUserMenu && (
+        <div className="sm:hidden border-t border-gray-100 bg-white p-4">
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                router.push('/profile');
+                setShowUserMenu(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              Profile
+            </button>
+            <button
+              onClick={() => {
+                handleLogout();
+                setShowUserMenu(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
       )}
     </div>
