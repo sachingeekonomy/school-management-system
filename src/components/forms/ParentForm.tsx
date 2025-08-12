@@ -64,36 +64,34 @@ const ParentForm = ({
       </div>
 
       <div className="space-y-6">
-        {type === "create" && (
-          <div>
-            <span className="text-xs text-gray-400 font-medium">Authentication Information</span>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-              <InputField
-                label="Username"
-                name="username"
-                defaultValue={data?.username}
-                register={register}
-                error={errors?.username}
-              />
-              <InputField
-                label="Email"
-                name="email"
-                type="email"
-                defaultValue={data?.email}
-                register={register}
-                error={errors?.email}
-              />
-              <InputField
-                label="Password"
-                name="password"
-                type="password"
-                defaultValue={data?.password}
-                register={register}
-                error={errors?.password}
-              />
-            </div>
+        <div>
+          <span className="text-xs text-gray-400 font-medium">Authentication Information</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            <InputField
+              label="Username"
+              name="username"
+              defaultValue={data?.username}
+              register={register}
+              error={errors?.username}
+            />
+            <InputField
+              label="Email"
+              name="email"
+              type="email"
+              defaultValue={data?.email}
+              register={register}
+              error={errors?.email}
+            />
+            <InputField
+              label="Password"
+              name="password"
+              type="password"
+              defaultValue={data?.password}
+              register={register}
+              error={errors?.password}
+            />
           </div>
-        )}
+        </div>
 
         <div>
           <span className="text-xs text-gray-400 font-medium">Basic Information</span>

@@ -11,9 +11,12 @@ const ProfilePage = async () => {
   const { userId } = auth();
 
   console.log("Profile page - User role determined:", role);
+  console.log("Profile page - User ID:", userId);
 
   // Fetch user-specific data based on role
   let userData = null;
+  
+  console.log("About to fetch user data for role:", role, "and userId:", userId);
   
   if (role === "student" && userId) {
     userData = await prisma.student.findUnique({
@@ -35,6 +38,34 @@ const ProfilePage = async () => {
         classes: true
       }
     });
+    console.log("Teacher data fetched by ID:", userData);
+    
+    // If not found by ID, try to find by email
+    if (!userData && user?.emailAddresses?.[0]?.emailAddress) {
+      userData = await prisma.teacher.findUnique({
+        where: { email: user.emailAddresses[0].emailAddress },
+        include: {
+          subjects: true,
+          classes: true
+        }
+      });
+          console.log("Teacher data fetched by email:", userData);
+  }
+  
+  // For debugging: if no teacher data found, create a sample object
+  if (role === "teacher" && !userData) {
+    console.log("No teacher data found, creating sample data for debugging");
+    userData = {
+      name: "Sample Teacher",
+      surname: "One",
+      email: "teacher1@example.com",
+      phone: "123-456-7891",
+      bloodType: "A+",
+      birthday: new Date("1990-01-01"),
+      subjects: [],
+      classes: []
+    };
+  }
   } else if (role === "parent" && userId) {
     userData = await prisma.parent.findUnique({
       where: { id: userId },

@@ -2,7 +2,7 @@ import Announcements from "@/components/Announcements";
 import AttendanceChartContainer from "@/components/AttendanceChartContainer";
 import CountChartContainer from "@/components/CountChartContainer";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
-import FinanceChart from "@/components/FinanceChart";
+import FinanceChartContainer from "@/components/FinanceChartContainer";
 import UserCard from "@/components/UserCard";
 import prisma from "@/lib/prisma";
 import { getUserRoleSync } from "@/lib/getUserRole";
@@ -234,7 +234,7 @@ const AdminPage = async ({
                   <h3 className="text-xl font-bold text-white">Financial Overview</h3>
                 </div>
                 <div className="h-[450px] transform group-hover:scale-[1.02] transition-transform duration-300">
-                  <FinanceChart />
+                  <FinanceChartContainer />
                 </div>
               </div>
             </div>

@@ -179,6 +179,17 @@ model Announcement {
   class   Class? @relation(fields: [classId], references: [id])
 }
 
+model Financial {
+  id          Int      @id @default(autoincrement())
+  month       String   // Jan, Feb, Mar, etc.
+  year        Int
+  income      Float
+  expense     Float
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Message {
   id        Int      @id @default(autoincrement())
   title     String
