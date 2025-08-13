@@ -86,6 +86,85 @@ const TeacherPage = async ({
     ? Math.round((presentRecords / totalAttendanceRecords) * 100)
     : 0;
 
+  // Get today's date and day of week
+  const today = new Date();
+  const todayDay = today.toLocaleDateString('en-US', { weekday: 'long' });
+  const todayDate = today.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  // Get today's classes/lessons
+  const todaysLessons = teacherLessons.filter(lesson => 
+    lesson.day.toLowerCase() === todayDay.toLowerCase()
+  );
+
+  // Get upcoming lessons (next 3 days)
+  const upcomingLessons = teacherLessons
+    .filter(lesson => {
+      const lessonDay = lesson.day.toLowerCase();
+      const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const todayIndex = daysOfWeek.indexOf(todayDay.toLowerCase());
+      const lessonIndex = daysOfWeek.indexOf(lessonDay);
+      
+      // If lesson is today or in the next 3 days
+      return lessonIndex >= todayIndex && lessonIndex <= todayIndex + 3;
+    })
+    .slice(0, 5); // Limit to 5 upcoming lessons
+
+  // Get recent attendance records (last 7 days)
+  const recentAttendance = await prisma.attendance.findMany({
+    where: {
+      lesson: {
+        teacherId: userId!,
+      },
+      date: {
+        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+      },
+    },
+    include: {
+      student: {
+        select: {
+          name: true,
+          surname: true,
+        },
+      },
+      lesson: {
+        select: {
+          name: true,
+          subject: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      date: 'desc',
+    },
+    take: 10, // Last 10 records
+  });
+
+  // Get assignments count for teacher's lessons
+  const assignmentsCount = await prisma.assignment.count({
+    where: {
+      lesson: {
+        teacherId: userId!,
+      },
+    },
+  });
+
+  // Get exams count for teacher's lessons
+  const examsCount = await prisma.exam.count({
+    where: {
+      lesson: {
+        teacherId: userId!,
+      },
+    },
+  });
+
   return (
     <div className="min-h-screen bg-transparent relative">
       {/* Enhanced Header Section with Stats */}
@@ -145,17 +224,19 @@ const TeacherPage = async ({
                   </div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">📈</span>
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-sm">Attendance</p>
-                    <p className="text-white text-2xl font-bold">{attendancePercentage}%</p>
+              <Link href="/list/attendance" className="block">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">📈</span>
+                    </div>
+                    <div>
+                      <p className="text-white/80 text-sm">Attendance</p>
+                      <p className="text-white text-2xl font-bold">{attendancePercentage}%</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -202,6 +283,176 @@ const TeacherPage = async ({
                   </div>
                   <div className="h-[400px] transform group-hover:scale-[1.02] transition-transform duration-300">
                     <AttendanceChartContainer />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Today's Classes Section */}
+            <div className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-24 translate-x-24"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
+
+              <div className="relative p-8 text-white">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-xl font-bold text-white">Today's Classes</h3>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-white/80">{todayDay}</p>
+                    <p className="text-xs text-white/60">{todayDate}</p>
+                  </div>
+                </div>
+                
+                {todaysLessons.length > 0 ? (
+                  <div className="space-y-4">
+                    {todaysLessons.map((lesson) => (
+                      <div key={lesson.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-white">{lesson.name}</h4>
+                            <p className="text-sm text-white/80">{lesson.subject.name} • {lesson.class.name}</p>
+                            <p className="text-xs text-white/60">
+                              {new Date(lesson.startTime).toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })} - {new Date(lesson.endTime).toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </p>
+                          </div>
+                          <Link href="/list/attendance" className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-xs font-medium transition-colors">
+                            Take Attendance
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-white/80">No classes scheduled for today</p>
+                    <p className="text-sm text-white/60 mt-2">Enjoy your day off!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions & Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Assignments & Exams */}
+              <div className="group relative overflow-hidden bg-gradient-to-r from-violet-500 via-purple-600 to-indigo-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+
+                <div className="relative p-6 text-white">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-lg font-bold text-white">Academic</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">📝</span>
+                        <div>
+                          <p className="text-sm text-white/80">Assignments</p>
+                          <p className="text-xl font-bold">{assignmentsCount}</p>
+                        </div>
+                      </div>
+                      <Link href="/list/assignments" className="bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs transition-colors">
+                        View
+                      </Link>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">📊</span>
+                        <div>
+                          <p className="text-sm text-white/80">Exams</p>
+                          <p className="text-xl font-bold">{examsCount}</p>
+                        </div>
+                      </div>
+                      <Link href="/list/exams" className="bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs transition-colors">
+                        View
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Attendance */}
+              <div className="group relative overflow-hidden bg-gradient-to-r from-rose-500 via-pink-600 to-red-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+
+                <div className="relative p-6 text-white">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-lg font-bold text-white">Recent Attendance</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {recentAttendance.slice(0, 3).map((record) => (
+                      <div key={record.id} className="flex items-center justify-between bg-white/10 rounded-lg p-2">
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {record.student.name} {record.student.surname}
+                          </p>
+                          <p className="text-xs text-white/60">{record.lesson.name}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          record.present 
+                            ? 'bg-green-500/20 text-green-200' 
+                            : 'bg-red-500/20 text-red-200'
+                        }`}>
+                          {record.present ? 'Present' : 'Absent'}
+                        </span>
+                      </div>
+                    ))}
+                    {recentAttendance.length === 0 && (
+                      <p className="text-sm text-white/60 text-center py-2">No recent attendance records</p>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 text-center">
+                    <Link href="/list/attendance" className="text-sm text-white/80 hover:text-white transition-colors">
+                      View All Attendance →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upcoming Lessons */}
+              <div className="group relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+
+                <div className="relative p-6 text-white">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+                    <h3 className="text-lg font-bold text-white">Upcoming</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {upcomingLessons.slice(0, 3).map((lesson) => (
+                      <div key={lesson.id} className="bg-white/10 rounded-lg p-2">
+                        <p className="text-sm font-medium text-white">{lesson.name}</p>
+                        <p className="text-xs text-white/60">{lesson.subject.name}</p>
+                        <p className="text-xs text-white/60">{lesson.day} • {lesson.class.name}</p>
+                      </div>
+                    ))}
+                    {upcomingLessons.length === 0 && (
+                      <p className="text-sm text-white/60 text-center py-2">No upcoming lessons</p>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 text-center">
+                    <Link href="/list/lessons" className="text-sm text-white/80 hover:text-white transition-colors">
+                      View All Lessons →
+                    </Link>
                   </div>
                 </div>
               </div>

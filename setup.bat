@@ -90,10 +90,6 @@ if not exist .env (
             echo POSTGRES_PASSWORD=password
             echo POSTGRES_DB=school_management
             echo.
-            echo # Clerk Authentication
-            echo NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-            echo CLERK_SECRET_KEY=your_clerk_secret_key
-            echo.
             echo # Next.js Configuration
             echo NEXTAUTH_SECRET=your_nextauth_secret
             echo NEXTAUTH_URL=http://localhost:3000

@@ -101,10 +101,6 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=password
 POSTGRES_DB=school_management
 
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-
 # Next.js Configuration
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000

@@ -179,10 +179,6 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
 POSTGRES_DB=school_management
 
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-
 # Next.js Configuration
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000
@@ -254,14 +250,6 @@ npm run test
 ```
 
 ## Production Deployment
-
-### 1. Production Environment Variables
-```env
-NODE_ENV=production
-DATABASE_URL=your_production_database_url
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_production_clerk_key
-CLERK_SECRET_KEY=your_production_clerk_secret
-```
 
 ### 2. Production Build
 ```bash
