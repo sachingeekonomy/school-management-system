@@ -36,7 +36,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username || !password) {
       toast.error('Please enter both username and password');
       return;
@@ -45,6 +45,8 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
+
+      console.log("Data>>", username, password, selectedRole)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -119,11 +121,10 @@ const LoginPage = () => {
                     key={role.value}
                     type="button"
                     onClick={() => setSelectedRole(role.value)}
-                    className={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-center ${
-                      selectedRole === role.value
+                    className={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-center ${selectedRole === role.value
                         ? 'border-white/70 bg-white/20 text-white'
                         : 'border-white/30 bg-transparent text-white/70 hover:border-white/50 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <span className="text-sm font-medium">{role.label}</span>
                   </button>
