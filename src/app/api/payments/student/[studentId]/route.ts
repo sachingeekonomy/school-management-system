@@ -17,33 +17,63 @@ export async function GET(
     }
 
     // Check if user has permission to view this student's payments
-    const user = await prisma.user.findUnique({
+    // First try to find user in the User model (new system)
+    let user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    // For parent access, we need to check if the student belongs to this parent
     let canView = false;
     
-    if (user.role === "ADMIN") {
-      canView = true;
-    } else if (user.role === "STUDENT") {
-      canView = params.studentId === userId;
-    } else if (user.role === "PARENT") {
-      // Check if the student belongs to this parent
-      const student = await prisma.student.findFirst({
-        where: {
-          id: params.studentId,
-          parentId: userId,
-        },
+    if (user) {
+      // User found in new system
+      if (user.role === "ADMIN") {
+        canView = true;
+      } else if (user.role === "STUDENT") {
+        canView = params.studentId === userId;
+      } else if (user.role === "PARENT") {
+        // Check if the student belongs to this parent
+        const student = await prisma.student.findFirst({
+          where: {
+            id: params.studentId,
+            parentId: userId,
+          },
+        });
+        canView = !!student;
+      }
+    } else {
+      // Try legacy system - check if user is a student
+      const student = await prisma.student.findUnique({
+        where: { id: userId },
       });
-      canView = !!student;
+      
+      if (student) {
+        canView = params.studentId === userId;
+      } else {
+        // Check if user is a parent
+        const parent = await prisma.parent.findUnique({
+          where: { id: userId },
+        });
+        
+        if (parent) {
+          // Check if the student belongs to this parent
+          const student = await prisma.student.findFirst({
+            where: {
+              id: params.studentId,
+              parentId: userId,
+            },
+          });
+          canView = !!student;
+        } else {
+          // Check if user is an admin
+          const admin = await prisma.admin.findUnique({
+            where: { id: userId },
+          });
+          
+          if (admin) {
+            canView = true;
+          }
+        }
+      }
     }
 
     if (!canView) {

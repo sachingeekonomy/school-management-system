@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import InputField from "../InputField";
 import Image from "next/image";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import {
   studentSchema,
   StudentSchema,
@@ -42,6 +43,7 @@ const StudentForm = ({
   });
 
   const [img, setImg] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [state, formAction] = useFormState(
     type === "create" ? createStudent : updateStudent,
@@ -109,14 +111,31 @@ const StudentForm = ({
               register={register}
               error={errors?.email}
             />
-            <InputField
-              label="Password"
-              name="password"
-              type="password"
-              defaultValue={data?.password}
-              register={register}
-              error={errors?.password}
-            />
+            <div className="flex flex-col gap-2 w-full">
+              <label className="text-xs text-gray-500">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  className="ring-[1.5px] ring-gray-300 p-3 rounded-md text-sm w-full pr-10"
+                  defaultValue={data?.password}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
+              {errors?.password?.message && (
+                <p className="text-xs text-red-400">{errors.password.message.toString()}</p>
+              )}
+            </div>
           </div>
         </div>
 

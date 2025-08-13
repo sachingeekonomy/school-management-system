@@ -142,8 +142,11 @@ const FormContainer = memo(({ table, type, data, id }: FormContainerProps) => {
         try {
           const lessonsResponse = await fetch("/api/lessons");
           if (lessonsResponse.ok) {
-            fetchedData.lessons = await lessonsResponse.json();
+            const lessonsData = await lessonsResponse.json();
+            console.log("Lessons data:", lessonsData);
+            fetchedData.lessons = Array.isArray(lessonsData) ? lessonsData : [];
           } else {
+            console.error("Lessons API error:", lessonsResponse.status);
             fetchedData.lessons = [];
           }
         } catch (error) {
@@ -157,8 +160,11 @@ const FormContainer = memo(({ table, type, data, id }: FormContainerProps) => {
         try {
           const studentsResponse = await fetch("/api/students");
           if (studentsResponse.ok) {
-            fetchedData.students = await studentsResponse.json();
+            const studentsData = await studentsResponse.json();
+            console.log("Students data:", studentsData);
+            fetchedData.students = Array.isArray(studentsData) ? studentsData : [];
           } else {
+            console.error("Students API error:", studentsResponse.status);
             fetchedData.students = [];
           }
         } catch (error) {
@@ -197,6 +203,7 @@ const FormContainer = memo(({ table, type, data, id }: FormContainerProps) => {
         }
       }
 
+      console.log("Final relatedData:", fetchedData);
       setRelatedData(fetchedData);
     } catch (error) {
       console.error("Error fetching related data:", error);

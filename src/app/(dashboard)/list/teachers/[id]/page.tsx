@@ -182,6 +182,7 @@ const SingleTeacherPage = async ({
                   {teacher.name + " " + teacher.surname}
                 </h1>
                 <span className="text-sm text-gray-500">Teacher ID: {teacher.username}</span>
+                <span className="text-sm text-gray-500">Password: {teacher.password}</span>
                 {role === "admin" && (
                   <FormContainer table="teacher" type="update" data={teacher} />
                 )}

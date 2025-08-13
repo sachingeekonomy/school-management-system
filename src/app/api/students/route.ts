@@ -220,7 +220,7 @@ export async function GET() {
       ],
     });
 
-    return NextResponse.json({ students });
+    return NextResponse.json(students);
   } catch (error) {
     console.error('Error fetching students:', error);
     return NextResponse.json(

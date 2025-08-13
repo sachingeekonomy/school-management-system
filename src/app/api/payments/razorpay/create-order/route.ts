@@ -70,21 +70,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has permission to pay for this student
-    const user = await prisma.user.findUnique({
+    // First try to find user in the User model (new system)
+    let user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    let canPay = false;
+    
+    if (user) {
+      // User found in new system
+      canPay = user.role === "ADMIN" || 
+               (user.role === "PARENT" && payment.student.parentId === userId) ||
+               (user.role === "STUDENT" && payment.studentId === userId);
+    } else {
+      // Try legacy system - check if user is a student
+      const student = await prisma.student.findUnique({
+        where: { id: userId },
+      });
+      
+      if (student) {
+        canPay = payment.studentId === userId;
+      } else {
+        // Check if user is a parent
+        const parent = await prisma.parent.findUnique({
+          where: { id: userId },
+        });
+        
+        if (parent) {
+          canPay = payment.student.parentId === userId;
+        } else {
+          // Check if user is an admin
+          const admin = await prisma.admin.findUnique({
+            where: { id: userId },
+          });
+          
+          if (admin) {
+            canPay = true;
+          }
+        }
+      }
     }
-
-    // Allow payment if user is admin, or if user is parent/student and matches the student
-    const canPay = user.role === "ADMIN" || 
-                   (user.role === "PARENT" && payment.student.parentId === userId) ||
-                   (user.role === "STUDENT" && payment.studentId === userId);
 
     if (!canPay) {
       return NextResponse.json(

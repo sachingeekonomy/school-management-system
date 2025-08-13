@@ -172,6 +172,7 @@ const SingleStudentPage = async ({
                   {student.name + " " + student.surname}
                 </h1>
                 <span className="text-sm text-gray-500">Student ID: {student.username}</span>
+                <span className="text-sm text-gray-500">Password: {student.password}</span>
                 {role === "admin" && (
                   <FormContainer table="student" type="update" data={student} />
                 )}

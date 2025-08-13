@@ -66,12 +66,20 @@ const PaymentDashboard = ({ studentId, userRole }: PaymentDashboardProps) => {
     try {
       const statusParam = filter !== "ALL" ? `&status=${filter}` : "";
       const response = await fetch(`/api/payments/student/${studentId}?${statusParam}`);
+      console.log("Payment API Response:", response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log("Payment Data:", data);
         setPayments(data.payments);
         setSummary(data.summary);
+      } else {
+        const errorData = await response.json();
+        console.error("Payment API Error:", errorData);
+        toast.error(errorData.error || "Failed to fetch payments");
       }
     } catch (error) {
+      console.error("Payment fetch error:", error);
       toast.error("Failed to fetch payments");
     } finally {
       setLoading(false);
@@ -116,7 +124,8 @@ const PaymentDashboard = ({ studentId, userRole }: PaymentDashboardProps) => {
 
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json();
-        throw new Error(errorData.error || "Failed to create payment order");
+        console.error("Order creation failed:", errorData);
+        throw new Error(errorData.error || `Failed to create payment order (${orderResponse.status})`);
       }
 
       const orderData = await orderResponse.json();

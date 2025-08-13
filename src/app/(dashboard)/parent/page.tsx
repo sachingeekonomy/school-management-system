@@ -3,6 +3,7 @@ import BigCalendarContainer from "@/components/BigCalendarContainer";
 import PaymentDashboard from "@/components/PaymentDashboard";
 import prisma from "@/lib/prisma";
 import { getUserSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 import { Users, Calendar, CreditCard, BookOpen, GraduationCap } from "lucide-react";
 
@@ -11,6 +12,11 @@ export const dynamic = 'force-dynamic';
 
 const ParentPage = async () => {
   const session = await getUserSession();
+  
+  if (!session || session.role !== 'parent') {
+    redirect('/sign-in');
+  }
+  
   const currentUserId = session?.id;
   
   const students = await prisma.student.findMany({

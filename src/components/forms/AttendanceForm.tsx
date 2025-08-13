@@ -51,10 +51,35 @@ const AttendanceForm = ({
 
   const onSubmit = handleSubmit((data) => {
     console.log("Submitting attendance data:", data);
-    formAction(data);
+    // Convert present from string to boolean
+    const formData = {
+      ...data,
+      present: data.present === "true"
+    };
+    console.log("Processed form data:", formData);
+    formAction(formData);
   });
 
-  const { students, lessons } = relatedData || { students: [], lessons: [] };
+  const { students = [], lessons = [] } = relatedData || {};
+
+  // Show loading state if data is not yet loaded
+  if (!relatedData || Object.keys(relatedData).length === 0) {
+    return (
+      <div className="flex flex-col gap-6 max-h-[80vh] overflow-y-auto px-6 py-4">
+        <div className="flex items-center justify-between sticky top-0 bg-white pb-4 border-b -mx-6 px-6">
+          <h1 className="text-xl font-semibold">
+            {type === "create" ? "Create a new attendance record" : "Update the attendance record"}
+          </h1>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading form data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form className="flex flex-col gap-6 max-h-[80vh] overflow-y-auto px-6 py-4" onSubmit={onSubmit}>
@@ -115,9 +140,7 @@ const AttendanceForm = ({
                  <input
                    type="radio"
                    value="true"
-                   {...register("present", { 
-                     setValueAs: (value) => value === "true" 
-                   })}
+                   {...register("present")}
                    defaultChecked={data?.present === true}
                    className="w-4 h-4 text-lamaSky bg-gray-100 border-gray-300 focus:ring-lamaSky"
                  />
@@ -127,9 +150,7 @@ const AttendanceForm = ({
                  <input
                    type="radio"
                    value="false"
-                   {...register("present", { 
-                     setValueAs: (value) => value === "true" 
-                   })}
+                   {...register("present")}
                    defaultChecked={data?.present === false}
                    className="w-4 h-4 text-lamaSky bg-gray-100 border-gray-300 focus:ring-lamaSky"
                  />
