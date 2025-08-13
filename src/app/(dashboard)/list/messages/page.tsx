@@ -7,10 +7,11 @@ import FilterDropdown from "@/components/FilterDropdown";
 import MessageActions from "@/components/MessageActions";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Prisma } from "@prisma/client";
+
 import Image from "next/image";
 import { getUserRoleSync } from "@/lib/getUserRole";
 import { getUserSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 type MessageList = {
   id: number;
@@ -39,6 +40,11 @@ const MessageListPage = async ({
   // Still need userId for role-based filtering
   const session = await getUserSession();
   const currentUserId = session?.id;
+
+  // Redirect if user is not authenticated
+  if (!currentUserId) {
+    redirect("/sign-in");
+  }
 
   console.log("User role determined:", role);
 
@@ -151,7 +157,7 @@ const MessageListPage = async ({
 
   // URL PARAMS CONDITION
 
-  const query: Prisma.MessageWhereInput = {};
+  const query: any = {};
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -208,7 +214,7 @@ const MessageListPage = async ({
     prisma.message.count({ where: query }),
   ]);
 
-  const data = dataRes.map((item) => ({
+  const data = dataRes.map((item: any) => ({
     id: item.id,
     title: item.title,
     content: item.content,
@@ -225,7 +231,7 @@ const MessageListPage = async ({
   }));
 
   // Calculate unread count for current user
-  const unreadCount = data.filter(item => !item.isRead && item.receiverId === currentUserId).length;
+  const unreadCount = data.filter((item: any) => !item.isRead && item.receiverId === currentUserId).length;
 
   return (
     <div className="bg-white p-4 flex-1  w-full h-full">

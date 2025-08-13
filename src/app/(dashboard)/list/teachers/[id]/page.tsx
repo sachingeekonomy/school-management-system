@@ -225,126 +225,135 @@ const SingleTeacherPage = async ({
               </div>
             </div>
           </div>
-                     {/* SMALL CARDS */}
-           <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
-             {/* Attendance Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/singleAttendance.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{attendancePercentage}%</h1>
-                 <span className="text-sm text-gray-400">Attendance Rate</span>
-               </div>
-             </div>
-             {/* Students Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/student.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalStudents}</h1>
-                 <span className="text-sm text-gray-400">Students</span>
-               </div>
-             </div>
-             {/* Average Score Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/result.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{averageScore}%</h1>
-                 <span className="text-sm text-gray-400">Avg Score</span>
-               </div>
-             </div>
-             {/* Classes Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/singleClass.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">
-                   {teacher._count.classes}
-                 </h1>
-                 <span className="text-sm text-gray-400">Classes</span>
-               </div>
-             </div>
-             {/* Exams Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/exam.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalExams}</h1>
-                 <span className="text-sm text-gray-400">Exams</span>
-               </div>
-             </div>
-             {/* Assignments Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/assignment.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalAssignments}</h1>
-                 <span className="text-sm text-gray-400">Assignments</span>
-               </div>
-             </div>
-             {/* Lessons This Week Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/lesson.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{totalLessonsThisWeek}</h1>
-                 <span className="text-sm text-gray-400">Lessons This Week</span>
-               </div>
-             </div>
-             {/* Total Lessons Card */}
-             <div className="bg-white p-4 rounded-md flex gap-4">
-               <Image
-                 src="/lesson.png"
-                 alt=""
-                 width={24}
-                 height={24}
-                 className="w-6 h-6"
-               />
-               <div className="">
-                 <h1 className="text-xl font-semibold">{teacher._count.lessons}</h1>
-                 <span className="text-sm text-gray-400">Total Lessons</span>
-               </div>
-             </div>
-           </div>
         </div>
+
+        {/* TEACHER STATISTICS SECTION */}
+        <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <Image src="/dashboard bg.png" alt="" width={24} height={24} />
+            <h2 className="text-xl font-semibold text-gray-800">Teacher Statistics</h2>
+          </div>
+          {/* SMALL CARDS */}
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {/* Attendance Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/singleAttendance.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{attendancePercentage}%</h1>
+                <span className="text-sm text-gray-500 block mt-1">Attendance Rate</span>
+              </div>
+            </div>
+            {/* Students Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/student.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{totalStudents}</h1>
+                <span className="text-sm text-gray-500 block mt-1">Students</span>
+              </div>
+            </div>
+            {/* Average Score Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/result.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{averageScore}%</h1>
+                <span className="text-sm text-gray-500 block mt-1">Avg Score</span>
+              </div>
+            </div>
+            {/* Classes Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/singleClass.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {teacher._count.classes}
+                </h1>
+                <span className="text-sm text-gray-500 block mt-1">Classes</span>
+              </div>
+            </div>
+            {/* Exams Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/exam.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{totalExams}</h1>
+                <span className="text-sm text-gray-500 block mt-1">Exams</span>
+              </div>
+            </div>
+            {/* Assignments Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/assignment.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{totalAssignments}</h1>
+                <span className="text-sm text-gray-500 block mt-1">Assignments</span>
+              </div>
+            </div>
+            {/* Lessons This Week Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/lesson.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{totalLessonsThisWeek}</h1>
+                <span className="text-sm text-gray-500 block mt-1">Lessons This Week</span>
+              </div>
+            </div>
+            {/* Total Lessons Card */}
+            <div className="bg-white p-6 rounded-md flex items-center gap-4 min-h-[100px]">
+              <Image
+                src="/lesson.png"
+                alt=""
+                width={24}
+                height={24}
+                className="w-8 h-8 flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-semibold text-gray-900">{teacher._count.lessons}</h1>
+                <span className="text-sm text-gray-500 block mt-1">Total Lessons</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* TEACHER DETAILS SECTIONS */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Subjects Section */}
           <div className="bg-white rounded-md p-4">
             <div className="flex items-center gap-2 mb-4">

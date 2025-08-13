@@ -34,6 +34,7 @@ model Student {
   grade       Grade        @relation(fields: [gradeId], references: [id])
   attendances Attendance[]
   results     Result[]
+  payments    Payment[]
   birthday    DateTime
 }
 
@@ -183,6 +184,17 @@ model Announcement {
   class   Class? @relation(fields: [classId], references: [id])
 }
 
+model Financial {
+  id          Int      @id @default(autoincrement())
+  month       String   // Jan, Feb, Mar, etc.
+  year        Int
+  income      Float
+  expense     Float
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Message {
   id        Int      @id @default(autoincrement())
   title     String
@@ -210,6 +222,25 @@ model User {
   receivedMessages Message[] @relation("ReceivedMessages")
 }
 
+model Payment {
+  id            String        @id @default(cuid())
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentType   PaymentType
+  paymentMethod PaymentMethod
+  dueDate       DateTime
+  description   String?
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@index([paymentType])
+  @@index([dueDate])
+}
+
 enum UserRole {
   ADMIN
   TEACHER
@@ -228,4 +259,26 @@ enum Day {
   WEDNESDAY
   THURSDAY
   FRIDAY
+}
+
+enum PaymentType {
+  TUITION
+  EXAM
+  TRANSPORT
+  LIBRARY
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHECK
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
 }

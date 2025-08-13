@@ -273,14 +273,22 @@ export const createTeacher = async (
   try {
     console.log("Creating teacher with data:", data);
     
-    // Generate a unique ID for the teacher (since we're bypassing Clerk)
-    const teacherId = `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    console.log("Generated teacher ID:", teacherId);
+    // Create user in Clerk first
+    const user = await clerkClient.users.createUser({
+      username: data.username,
+      password: data.password,
+      firstName: data.name,
+      lastName: data.surname,
+      emailAddress: data.email ? [data.email] : ["test@example.com"],
+      phoneNumber: data.phone ? [data.phone] : ["+15551234567"],
+      publicMetadata: { role: "teacher" }
+    });
+
+    console.log("Clerk user created with ID:", user.id);
 
     // Prepare teacher data
     const teacherData: any = {
-      id: teacherId,
+      id: user.id, // Use Clerk user ID
       username: data.username,
       name: data.name,
       surname: data.surname,
@@ -311,9 +319,21 @@ export const createTeacher = async (
     console.log("Teacher created successfully");
     // revalidatePath("/list/teachers");
     return { success: true, error: false };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error creating teacher:", err);
-    return { success: false, error: true };
+    
+    // Handle specific Clerk errors
+    if (err.errors && err.errors.length > 0) {
+      const errorMessage = err.errors[0].message;
+      return { success: false, error: true, message: errorMessage };
+    }
+    
+    // Handle other types of errors
+    if (err.message) {
+      return { success: false, error: true, message: err.message };
+    }
+    
+    return { success: false, error: true, message: "Failed to create teacher" };
   }
 };
 
@@ -327,7 +347,14 @@ export const updateTeacher = async (
   try {
     console.log("Updating teacher with data:", data);
 
-    // Update only in Prisma (since we're bypassing Clerk for teachers)
+    // Update user in Clerk
+    await clerkClient.users.updateUser(data.id, {
+      username: data.username,
+      firstName: data.name,
+      lastName: data.surname,
+    });
+
+    // Update in Prisma
     await prisma.teacher.update({
       where: {
         id: data.id,
@@ -354,9 +381,21 @@ export const updateTeacher = async (
     console.log("Teacher updated successfully");
     // revalidatePath("/list/teachers");
     return { success: true, error: false };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error updating teacher:", err);
-    return { success: false, error: true };
+    
+    // Handle specific Clerk errors
+    if (err.errors && err.errors.length > 0) {
+      const errorMessage = err.errors[0].message;
+      return { success: false, error: true, message: errorMessage };
+    }
+    
+    // Handle other types of errors
+    if (err.message) {
+      return { success: false, error: true, message: err.message };
+    }
+    
+    return { success: false, error: true, message: "Failed to update teacher" };
   }
 };
 
@@ -434,19 +473,34 @@ export const deleteTeacher = async (
     
     console.log("Related lessons deleted");
     
-    // Finally delete the teacher
+    // Finally delete the teacher from Prisma
     await prisma.teacher.delete({
       where: {
         id: id,
       },
     });
 
+    // Delete the user from Clerk
+    await clerkClient.users.deleteUser(id);
+
     console.log("Teacher deleted successfully");
     // revalidatePath("/list/teachers");
     return { success: true, error: false };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error deleting teacher:", err);
-    return { success: false, error: true };
+    
+    // Handle specific Clerk errors
+    if (err.errors && err.errors.length > 0) {
+      const errorMessage = err.errors[0].message;
+      return { success: false, error: true, message: errorMessage };
+    }
+    
+    // Handle other types of errors
+    if (err.message) {
+      return { success: false, error: true, message: err.message };
+    }
+    
+    return { success: false, error: true, message: "Failed to delete teacher" };
   }
 };
 

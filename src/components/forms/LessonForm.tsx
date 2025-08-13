@@ -54,10 +54,10 @@ const LessonForm = ({
     }
   }, [state, router, type, setOpen]);
 
-  const { subjects, classes, teachers } = relatedData;
+  const { subjects = [] } = relatedData || {};
 
   return (
-    <form className="flex flex-col gap-8" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-8 p-4" onSubmit={onSubmit}>
       <h1 className="text-xl font-semibold">
         {type === "create" ? "Create a new lesson" : "Update the lesson"}
       </h1>
@@ -87,12 +87,12 @@ const LessonForm = ({
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">Subject</label>
             <select
-              className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
+              className="ring-[1.5px] ring-gray-300 p-3 rounded-md text-sm w-full"
               {...register("subjectId")}
               defaultValue={data?.subjectId}
             >
               <option value="">Select a subject</option>
-              {subjects.map((subject: { id: number; name: string }) => (
+              {subjects?.map((subject: { id: number; name: string }) => (
                 <option value={subject.id} key={subject.id}>
                   {subject.name}
                 </option>
@@ -113,7 +113,7 @@ const LessonForm = ({
               defaultValue={data?.classId}
             >
               <option value="">Select a class</option>
-              {classes.map((classItem: { id: number; name: string }) => (
+              {relatedData?.classes.map((classItem: { id: number; name: string }) => (
                 <option value={classItem.id} key={classItem.id}>
                   {classItem.name}
                 </option>
@@ -134,7 +134,7 @@ const LessonForm = ({
               defaultValue={data?.teacherId}
             >
               <option value="">Select a teacher</option>
-              {teachers.map((teacher: { id: string; name: string; surname: string }) => (
+              {relatedData?.teachers.map((teacher: { id: string; name: string; surname: string }) => (
                 <option value={teacher.id} key={teacher.id}>
                   {teacher.name + " " + teacher.surname}
                 </option>

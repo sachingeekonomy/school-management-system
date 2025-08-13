@@ -2,6 +2,7 @@ import { getUserRoleSync } from "@/lib/getUserRole";
 import { getUserSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Image from "next/image";
+import ProfileEditForm from "@/components/ProfileEditForm";
 
 const ProfilePage = async () => {
   // Get user role and current user
@@ -10,9 +11,12 @@ const ProfilePage = async () => {
   const userId = session?.id;
 
   console.log("Profile page - User role determined:", role);
+  console.log("Profile page - User ID:", userId);
 
   // Fetch user-specific data based on role
   let userData = null;
+  
+  console.log("About to fetch user data for role:", role, "and userId:", userId);
   
   if (role === "student" && userId) {
     userData = await prisma.student.findUnique({
@@ -34,6 +38,34 @@ const ProfilePage = async () => {
         classes: true
       }
     });
+    console.log("Teacher data fetched by ID:", userData);
+    
+    // If not found by ID, try to find by email
+    if (!userData && user?.emailAddresses?.[0]?.emailAddress) {
+      userData = await prisma.teacher.findUnique({
+        where: { email: user.emailAddresses[0].emailAddress },
+        include: {
+          subjects: true,
+          classes: true
+        }
+      });
+      console.log("Teacher data fetched by email:", userData);
+    }
+    
+    // For debugging: if no teacher data found, create a sample object
+    if (role === "teacher" && !userData) {
+      console.log("No teacher data found, creating sample data for debugging");
+      userData = {
+        name: "Sample Teacher",
+        surname: "One",
+        email: "teacher1@example.com",
+        phone: "123-456-7891",
+        bloodType: "A+",
+        birthday: new Date("1990-01-01"),
+        subjects: [],
+        classes: []
+      };
+    }
   } else if (role === "parent" && userId) {
     userData = await prisma.parent.findUnique({
       where: { id: userId },
@@ -50,6 +82,9 @@ const ProfilePage = async () => {
       }
     });
   }
+
+  // Determine if user can edit profile (admin and teacher only)
+  const canEdit = role === "admin" || role === "teacher";
 
   return (
     <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
@@ -99,6 +134,13 @@ const ProfilePage = async () => {
             </div>
           </div>
         </div>
+
+        {/* Edit Profile Section - Only for admin and teacher */}
+        {canEdit && (
+          <div className="mt-4 bg-white p-4 rounded-md">
+            <ProfileEditForm userData={userData} role={role} />
+          </div>
+        )}
       </div>
 
       {/* RIGHT */}

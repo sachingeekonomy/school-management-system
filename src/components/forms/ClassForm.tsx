@@ -64,7 +64,7 @@ const ClassForm = ({
     }
   }, [state, router, type, setOpen]);
 
-  const { teachers, grades } = relatedData;
+  const { teachers = [], grades = [] } = relatedData || {};
 
   return (
     <form className="flex flex-col gap-8 p-4" onSubmit={onSubmit}>
@@ -105,7 +105,7 @@ const ClassForm = ({
             defaultValue={data?.supervisorId}
           >
             <option value="">Select a supervisor</option>
-            {teachers.map(
+            {teachers?.map(
               (teacher: { id: string; name: string; surname: string }) => (
                 <option
                   value={teacher.id}
@@ -130,7 +130,7 @@ const ClassForm = ({
             defaultValue={data?.gradeId}
           >
             <option value="">Select a grade</option>
-            {grades.map((grade: { id: number; level: number }) => (
+            {grades?.map((grade: { id: number; level: number }) => (
               <option
                 value={grade.id}
                 key={grade.id}

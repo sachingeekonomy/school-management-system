@@ -89,6 +89,12 @@ const menuItems = [
         href: "/list/announcements",
         visible: ["admin", "teacher", "student", "parent"],
       },
+      {
+        icon: "/finance.png",
+        label: "Payments",
+        href: "/list/payments",
+        visible: ["admin", "parent"],
+      },
     ],
   },
   {
@@ -98,12 +104,6 @@ const menuItems = [
         icon: "/profile.png",
         label: "Profile",
         href: "/profile",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/setting.png",
-        label: "Settings",
-        href: "/settings",
         visible: ["admin", "teacher", "student", "parent"],
       },
       {
