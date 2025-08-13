@@ -10,6 +10,7 @@ import { ITEM_PER_PAGE } from "@/lib/settings";
 
 import Image from "next/image";
 import { getUserRoleSync } from "@/lib/getUserRole";
+import { getUserSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 type MessageList = {
@@ -37,7 +38,8 @@ const MessageListPage = async ({
   const role = await getUserRoleSync();
   
   // Still need userId for role-based filtering
-  const { userId: currentUserId } = await import("@clerk/nextjs/server").then(m => m.auth());
+  const session = await getUserSession();
+  const currentUserId = session?.id;
 
   // Redirect if user is not authenticated
   if (!currentUserId) {

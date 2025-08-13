@@ -16,6 +16,7 @@ CREATE TABLE "Admin" (
 CREATE TABLE "Student" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
     "email" TEXT,
@@ -36,6 +37,7 @@ CREATE TABLE "Student" (
 CREATE TABLE "Teacher" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
     "email" TEXT,
@@ -53,6 +55,7 @@ CREATE TABLE "Teacher" (
 CREATE TABLE "Parent" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
     "email" TEXT,

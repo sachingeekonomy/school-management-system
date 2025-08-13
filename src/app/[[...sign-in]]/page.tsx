@@ -1,191 +1,165 @@
 "use client";
 
-import * as Clerk from "@clerk/elements/common";
-import * as SignIn from "@clerk/elements/sign-in";
-import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 const LoginPage = () => {
-  const { isLoaded, isSignedIn, user } = useUser();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState('admin');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
+  // Check if user is already logged in
   useEffect(() => {
-    if (!isLoaded) return;
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            // User is already logged in, redirect to their dashboard
+            router.push(`/${data.user.role}`);
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    };
 
-    if (isSignedIn && user) {
-      console.log('=== DEBUG INFO ===');
-      console.log('User object:', user);
-      console.log('User ID:', user.id);
-      console.log('User username:', user.username);
-      console.log('User publicMetadata:', user.publicMetadata);
-      console.log('==================');
+    checkAuth();
+  }, [router]);
 
-             // Wait a bit for session to fully load
-       const redirectWithRole = () => {
-         // Use selected role from the form
-         const role = selectedRole;
-         
-         console.log('Selected role:', role);
-         console.log('Redirecting to:', `/${role}`);
-         router.push(`/${role}`);
-       };
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-      // Try immediate redirect
-      redirectWithRole();
-      
-      // Also try after a short delay to ensure session is fully loaded
-      setTimeout(redirectWithRole, 1000);
+    if (!username || !password) {
+      toast.error('Please enter both username and password');
+      return;
     }
-  }, [user, router, isSignedIn, isLoaded]);
 
-  // Show loading while checking authentication
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 overflow-hidden relative">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('/Glass Effect Login Page - Blue.png')`
-          }}
-        />
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-blue-900/20"></div>
-        
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl relative z-10">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
-            <h1 className="text-xl font-bold text-white">Loading...</h1>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    setIsLoading(true);
 
-  // If user is signed in, show loading while redirecting
-  if (isSignedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 overflow-hidden relative">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('/Glass Effect Login Page - Blue.png')`
-          }}
-        />
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-blue-900/20"></div>
-        
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl relative z-10">
-          <div className="flex flex-col items-center">
-            <div className="animate-pulse rounded-full h-12 w-12 bg-green-400/30 flex items-center justify-center mb-4 border border-green-400/50">
-              <svg className="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-white">Welcome!</h1>
-            <p className="text-white/80 text-center mt-2">Redirecting to your dashboard...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    try {
 
-  // Show sign-in form if not signed in
+      console.log("Data>>", username, password, selectedRole)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          role: selectedRole
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Login successful!');
+        router.push(`/${selectedRole}`);
+      } else {
+        toast.error(data.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 overflow-hidden relative">
-              {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('/Glass Effect Login Page - Blue.png')`
-          }}
-        />
-      
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('/Glass Effect Login Page - Blue.png')`
+        }}
+      />
+
       {/* Overlay for better contrast */}
       <div className="absolute inset-0 bg-blue-900/20"></div>
-      
+
       {/* Main Container */}
       <div className="relative w-full max-w-md z-10">
-        
-        <SignIn.Root>
-          <SignIn.Step
-            name="start"
-            className="bg-blue-700/1 backdrop-blur-xl border border-white/20 p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col gap-4"
-          >
-            {/* Header */}
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="p-2  backdrop-blur-sm rounded-2xl shadow-lg border border-white/30">
-                  <Image src="/logo.png" alt="" width={28} height={28} className="rounded-full" />
-                </div>
-                <h1 className="text-white text-xl md:text-2xl font-bold">
-                FutureScholars
-                </h1>
+        <div className="bg-blue-700/1 backdrop-blur-xl border border-white/20 p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col gap-4">
+          {/* Header */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="p-2 backdrop-blur-sm rounded-2xl shadow-lg border border-white/30">
+                <Image src="/logo.png" alt="" width={28} height={28} className="rounded-full" />
               </div>
-              <h2 className="text-white/90 text-lg font-medium mb-4">
-                Login
-              </h2>
+              <h1 className="text-white text-xl md:text-2xl font-bold">
+                FutureScholars
+              </h1>
+            </div>
+            <h2 className="text-white/90 text-lg font-medium mb-4">
+              Login
+            </h2>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <label className="text-white/90 text-sm font-medium">Login as:</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'admin', label: 'Admin' },
+                  { value: 'teacher', label: 'Teacher' },
+                  { value: 'student', label: 'Student' },
+                  { value: 'parent', label: 'Parent' }
+                ].map((role) => (
+                  <button
+                    key={role.value}
+                    type="button"
+                    onClick={() => setSelectedRole(role.value)}
+                    className={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-center ${selectedRole === role.value
+                        ? 'border-white/70 bg-white/20 text-white'
+                        : 'border-white/30 bg-transparent text-white/70 hover:border-white/50 hover:text-white'
+                      }`}
+                  >
+                    <span className="text-sm font-medium">{role.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-                         <Clerk.GlobalError className="text-sm text-red-400 bg-red-500/20 p-3 rounded-xl border border-red-400/30" />
-             
-             {/* Role Selection */}
-             <div className="space-y-2">
-               <label className="text-white/90 text-sm font-medium">Login as:</label>
-                               <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: 'admin', label: 'Admin' },
-                    { value: 'teacher', label: 'Teacher' },
-                    { value: 'student', label: 'Student' },
-                    { value: 'parent', label: 'Parent' }
-                  ].map((role) => (
-                    <button
-                      key={role.value}
-                      type="button"
-                      onClick={() => setSelectedRole(role.value)}
-                      className={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-center ${
-                        selectedRole === role.value
-                          ? 'border-white/70 bg-white/20 text-white'
-                          : 'border-white/30 bg-transparent text-white/70 hover:border-white/50 hover:text-white'
-                      }`}
-                    >
-                      <span className="text-sm font-medium">{role.label}</span>
-                    </button>
-                  ))}
-                </div>
-             </div>
-             
-             {/* Email Field */}
-             <Clerk.Field name="identifier" className="relative">
-              <Clerk.Input
+            {/* Username Field */}
+            <div className="relative">
+              <input
                 type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="peer w-full p-4 pt-6 rounded-xl bg-transparent border-2 border-white/30 focus:border-white/70 focus:ring-0 transition-all duration-200 outline-none text-white placeholder-transparent"
-                placeholder="Email"
+                placeholder="Username"
               />
-              <Clerk.Label className="absolute left-4 top-2 text-xs font-medium text-white/70 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/50 peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white/90">
-                UserId
-              </Clerk.Label>
-              <Clerk.FieldError className="text-sm text-red-400 bg-red-500/20 p-2 rounded-lg mt-1" />
-            </Clerk.Field>
+              <label className="absolute left-4 top-2 text-xs font-medium text-white/70 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/50 peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white/90">
+                Username
+              </label>
+            </div>
 
             {/* Password Field */}
-            <Clerk.Field name="password" className="relative">
-              <Clerk.Input
+            <div className="relative">
+              <input
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="peer w-full p-4 pt-6 pr-12 rounded-xl bg-transparent border-2 border-white/30 focus:border-white/70 focus:ring-0 transition-all duration-200 outline-none text-white placeholder-transparent"
                 placeholder="Password"
               />
-              <Clerk.Label className="absolute left-4 top-2 text-xs font-medium text-white/70 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/50 peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white/90">
+              <label className="absolute left-4 top-2 text-xs font-medium text-white/70 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/50 peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white/90">
                 Password
-              </Clerk.Label>
+              </label>
               {/* Show/Hide Password Button */}
               <button
                 type="button"
@@ -203,8 +177,7 @@ const LoginPage = () => {
                   </svg>
                 )}
               </button>
-              <Clerk.FieldError className="text-sm text-red-400 p-2 rounded-lg mt-1" />
-            </Clerk.Field>
+            </div>
 
             {/* Forgot Password */}
             <div className="text-right -mt-1">
@@ -214,17 +187,22 @@ const LoginPage = () => {
             </div>
 
             {/* Sign In Button */}
-            <SignIn.Action
-              submit
-              className="w-full bg-blue-900/80 hover:bg-blue-900 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] border border-blue-800/50"
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-900/80 hover:bg-blue-900 disabled:bg-blue-900/50 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] border border-blue-800/50 disabled:cursor-not-allowed"
             >
-              Sign in
-            </SignIn.Action>
-
-
-
-          </SignIn.Step>
-        </SignIn.Root>
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Signing in...
+                </div>
+              ) : (
+                'Sign in'
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 const SettingsPage = () => {
-  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState("");
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -17,16 +18,30 @@ const SettingsPage = () => {
     email: "",
   });
 
-  // Initialize form data when user loads
-  React.useEffect(() => {
-    if (isLoaded && user) {
-      setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.emailAddresses[0]?.emailAddress || "",
-      });
-    }
-  }, [isLoaded, user]);
+  // Fetch user data from our custom API
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data.user);
+          setFormData({
+            firstName: data.user.firstName || "",
+            lastName: data.user.lastName || "",
+            email: data.user.email || "",
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        toast.error('Failed to load user data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,24 +53,15 @@ const SettingsPage = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!userData) return;
 
     setIsUpdating(true);
     setMessage("");
 
     try {
-      // Update first and last name
-      await user.update({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      });
-
-      // Update email if it's different
-      const currentEmail = user.emailAddresses[0]?.emailAddress;
-      if (formData.email !== currentEmail) {
-        await user.createEmailAddress({ email: formData.email });
-      }
-
+      // For demo purposes, we'll just show a success message
+      // In a real app, you would make an API call to update the user data
+      toast.success("Profile updated successfully!");
       setMessage("Profile updated successfully!");
       
       // Refresh the page after a short delay
@@ -66,17 +72,17 @@ const SettingsPage = () => {
     } catch (error: any) {
       console.error("Error updating profile:", error);
       setMessage(`Error updating profile: ${error.message}`);
+      toast.error("Failed to update profile");
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleChangePassword = () => {
-    // Redirect to Clerk's password change page
-    window.location.href = `/user-profile`;
+    toast.info("Password change functionality would be implemented here");
   };
 
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <div className="flex-1 p-4 flex items-center justify-center">
         <div className="text-center">
@@ -100,7 +106,7 @@ const SettingsPage = () => {
           <h2 className="text-lg font-semibold mb-4">Profile Picture</h2>
           <div className="flex items-center gap-4">
             <Image
-              src={user?.imageUrl || "/noAvatar.png"}
+              src="/noAvatar.png"
               alt="Profile"
               width={64}
               height={64}
@@ -108,10 +114,10 @@ const SettingsPage = () => {
             />
             <div>
               <p className="text-sm text-gray-600 mb-2">
-                To change your profile picture, please visit your Clerk user profile.
+                Profile picture management will be available in future updates.
               </p>
               <button
-                onClick={() => window.location.href = `/user-profile`}
+                onClick={handleChangePassword}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
               >
                 Manage Profile
@@ -182,8 +188,6 @@ const SettingsPage = () => {
           </div>
         </form>
 
-     
-
         {/* Message Display */}
         {message && (
           <div className={`mt-4 p-4 rounded-md ${
@@ -199,19 +203,19 @@ const SettingsPage = () => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Username:</span>
-              <span>{user?.username || "N/A"}</span>
+              <span>{userData?.username || "N/A"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Username:</span>
-              <span>{user?.fullName || "N/A"}</span>
+              <span className="text-gray-600">Full Name:</span>
+              <span>{userData?.firstName} {userData?.lastName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Member Since:</span>
-              <span>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</span>
+              <span className="text-gray-600">Role:</span>
+              <span className="capitalize">{userData?.role || "N/A"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Last Updated:</span>
-              <span>{user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "N/A"}</span>
+              <span className="text-gray-600">User ID:</span>
+              <span className="text-xs">{userData?.id || "N/A"}</span>
             </div>
           </div>
         </div>

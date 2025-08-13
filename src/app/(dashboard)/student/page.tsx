@@ -3,11 +3,13 @@ import BigCalendarContainer from "@/components/BigCalendarContainer";
 import EventCalendar from "@/components/EventCalendar";
 import PaymentDashboard from "@/components/PaymentDashboard";
 import prisma from "@/lib/prisma";
+import { getUserSession } from "@/lib/auth";
 import { auth } from "@clerk/nextjs/server";
 import { GraduationCap, Calendar, CreditCard, BookOpen } from "lucide-react";
 
 const StudentPage = async () => {
-  const { userId } = auth();
+  const session = await getUserSession();
+  const userId = session?.id;
 
   // First, get the student record to find their class
   const student = await prisma.student.findUnique({

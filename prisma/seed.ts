@@ -7,12 +7,14 @@ async function main() {
     data: {
       id: "admin1",
       username: "admin1",
+      password: "Dayesh@123",
     },
   });
   await prisma.admin.create({
     data: {
       id: "admin2",
       username: "admin2",
+      password: "Dayesh@123",
     },
   });
 
@@ -60,10 +62,11 @@ async function main() {
       data: {
         id: `teacher${i}`, // Unique ID for the teacher
         username: `teacher${i}`,
+        password: "Dayesh@123",
         name: `TName${i}`,
         surname: `TSurname${i}`,
-        email: `teacher${i}@example.com`,
-        phone: `123-456-789${i}`,
+        email: `teacher${i}@gamil.com`,
+        phone: `776056306${i}`,
         address: `Address${i}`,
         bloodType: "A+",
         sex: i % 2 === 0 ? UserSex.MALE : UserSex.FEMALE,
@@ -99,6 +102,7 @@ async function main() {
       data: {
         id: `parentId${i}`,
         username: `parentId${i}`,
+        password: "Dayesh@123",
         name: `PName ${i}`,
         surname: `PSurname ${i}`,
         email: `parent${i}@example.com`,
@@ -113,6 +117,7 @@ async function main() {
     where: { id: "parent_test" },
     update: {
       username: "parent_test",
+      password: "Dayesh@123",
       name: "John",
       surname: "Doe",
       email: "john.doe@example.com",
@@ -122,6 +127,7 @@ async function main() {
     create: {
       id: "parent_test",
       username: "parent_test",
+      password: "Dayesh@123",
       name: "John",
       surname: "Doe",
       email: "john.doe@example.com",
@@ -136,6 +142,7 @@ async function main() {
       data: {
         id: `student${i}`, 
         username: `student${i}`, 
+        password: "Dayesh@123",
         name: `SName${i}`,
         surname: `SSurname ${i}`,
         email: `student${i}@example.com`,
