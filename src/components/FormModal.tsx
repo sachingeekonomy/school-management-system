@@ -115,7 +115,7 @@ const forms: {
   teacher: (setOpen, type, data, relatedData) => (
     <TeacherForm
       type={type}
-      data={data}
+      data={data}     
       setOpen={setOpen}
       relatedData={relatedData}
     />
@@ -207,7 +207,7 @@ const FormModal = ({
   type,
   data,
   id,
-  relatedData,
+  relatedData: initialRelatedData,
 }: FormContainerProps & { relatedData?: any }) => {
   const size = type === "create" ? "w-10 h-10" : "w-7 h-7";
   const bgColor =
@@ -218,6 +218,184 @@ const FormModal = ({
       : "bg-lamaPurple";
 
   const [open, setOpen] = useState(false);
+  const [relatedData, setRelatedData] = useState<any>(initialRelatedData || {});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch related data when form opens
+  useEffect(() => {
+    if (open && (type === "create" || type === "update")) {
+      fetchRelatedData();
+    }
+  }, [open, table, type]);
+
+  const fetchRelatedData = async () => {
+    setIsLoading(true);
+    try {
+      const dataMap: { [key: string]: string[] } = {
+        student: ["grades", "classes", "parents"],
+        subject: ["teachers"],
+        class: ["teachers", "grades"],
+        lesson: ["subjects", "classes", "teachers"],
+        exam: ["lessons"],
+        result: ["students", "exams", "assignments"],
+        teacher: ["subjects"],
+        assignment: ["lessons"],
+        attendance: ["students", "lessons"],
+      };
+
+      const requiredData = dataMap[table] || [];
+      const fetchedData: any = {};
+
+      // Fetch grades
+      if (requiredData.includes("grades")) {
+        try {
+          const gradesResponse = await fetch("/api/grades");
+          if (gradesResponse.ok) {
+            fetchedData.grades = await gradesResponse.json();
+          } else {
+            fetchedData.grades = [];
+          }
+        } catch (error) {
+          console.error("Error fetching grades:", error);
+          fetchedData.grades = [];
+        }
+      }
+
+      // Fetch classes
+      if (requiredData.includes("classes")) {
+        try {
+          const classesResponse = await fetch("/api/classes");
+          if (classesResponse.ok) {
+            fetchedData.classes = await classesResponse.json();
+          } else {
+            fetchedData.classes = [];
+          }
+        } catch (error) {
+          console.error("Error fetching classes:", error);
+          fetchedData.classes = [];
+        }
+      }
+
+      // Fetch parents
+      if (requiredData.includes("parents")) {
+        try {
+          const parentsResponse = await fetch("/api/parents");
+          if (parentsResponse.ok) {
+            fetchedData.parents = await parentsResponse.json();
+          } else {
+            fetchedData.parents = [];
+          }
+        } catch (error) {
+          console.error("Error fetching parents:", error);
+          fetchedData.parents = [];
+        }
+      }
+
+      // Fetch teachers
+      if (requiredData.includes("teachers")) {
+        try {
+          const teachersResponse = await fetch("/api/teachers");
+          if (teachersResponse.ok) {
+            fetchedData.teachers = await teachersResponse.json();
+          } else {
+            fetchedData.teachers = [];
+          }
+        } catch (error) {
+          console.error("Error fetching teachers:", error);
+          fetchedData.teachers = [];
+        }
+      }
+
+      // Fetch subjects
+      if (requiredData.includes("subjects")) {
+        try {
+          const subjectsResponse = await fetch("/api/subjects");
+          if (subjectsResponse.ok) {
+            fetchedData.subjects = await subjectsResponse.json();
+          } else {
+            fetchedData.subjects = [];
+          }
+        } catch (error) {
+          console.error("Error fetching subjects:", error);
+          fetchedData.subjects = [];
+        }
+      }
+
+      // Fetch lessons
+      if (requiredData.includes("lessons")) {
+        try {
+          const lessonsResponse = await fetch("/api/lessons");
+          if (lessonsResponse.ok) {
+            const lessonsData = await lessonsResponse.json();
+            console.log("Lessons data:", lessonsData);
+            fetchedData.lessons = Array.isArray(lessonsData) ? lessonsData : [];
+          } else {
+            console.error("Lessons API error:", lessonsResponse.status);
+            fetchedData.lessons = [];
+          }
+        } catch (error) {
+          console.error("Error fetching lessons:", error);
+          fetchedData.lessons = [];
+        }
+      }
+
+      // Fetch students
+      if (requiredData.includes("students")) {
+        try {
+          const studentsResponse = await fetch("/api/students");
+          if (studentsResponse.ok) {
+            const studentsData = await studentsResponse.json();
+            console.log("Students data:", studentsData);
+            fetchedData.students = Array.isArray(studentsData) ? studentsData : [];
+          } else {
+            console.error("Students API error:", studentsResponse.status);
+            fetchedData.students = [];
+          }
+        } catch (error) {
+          console.error("Error fetching students:", error);
+          fetchedData.students = [];
+        }
+      }
+
+      // Fetch exams
+      if (requiredData.includes("exams")) {
+        try {
+          const examsResponse = await fetch("/api/exams");
+          if (examsResponse.ok) {
+            fetchedData.exams = await examsResponse.json();
+          } else {
+            fetchedData.exams = [];
+          }
+        } catch (error) {
+          console.error("Error fetching exams:", error);
+          fetchedData.exams = [];
+        }
+      }
+
+      // Fetch assignments
+      if (requiredData.includes("assignments")) {
+        try {
+          const assignmentsResponse = await fetch("/api/assignments");
+          if (assignmentsResponse.ok) {
+            fetchedData.assignments = await assignmentsResponse.json();
+          } else {
+            fetchedData.assignments = [];
+          }
+        } catch (error) {
+          console.error("Error fetching assignments:", error);
+          fetchedData.assignments = [];
+        }
+      }
+
+      console.log("Final relatedData:", fetchedData);
+      setRelatedData(fetchedData);
+    } catch (error) {
+      console.error("Error fetching related data:", error);
+      setRelatedData({});
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const Form = () => {
     const [state, formAction] = useFormState(deleteActionMap[table], {

@@ -45,8 +45,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-
-      console.log("Data>>", username, password, selectedRole)
+      console.log("Data>>", username, password, selectedRole);
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -62,14 +61,32 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Login successful!');
-        router.push(`/${selectedRole}`);
+        // Show success message with user details
+        const successMessage = data.user ? 
+          `Welcome back, ${data.user.name || data.user.username}!` : 
+          'Login successful!';
+        toast.success(successMessage);
+        
+        // Small delay to show the success message before redirecting
+        setTimeout(() => {
+          router.push(`/${selectedRole}`);
+        }, 1000);
       } else {
-        toast.error(data.error || 'Login failed');
+        // Show specific error message from API
+        const errorMessage = data.error || data.message || 'Login failed. Please check your credentials.';
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      
+      // Handle different types of errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast.error('Network error. Please check your internet connection.');
+      } else if (error instanceof Error) {
+        toast.error(`Login error: ${error.message}`);
+      } else {
+        toast.error('An unexpected error occurred during login. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
