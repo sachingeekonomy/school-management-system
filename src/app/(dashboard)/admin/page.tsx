@@ -8,6 +8,9 @@ import prisma from "@/lib/prisma";
 import { getUserRoleSync } from "@/lib/getUserRole";
 import { redirect } from "next/navigation";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 const AdminPage = async ({
   searchParams,
 }: {

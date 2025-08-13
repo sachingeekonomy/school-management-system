@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -11,7 +10,6 @@ interface ProfileEditFormProps {
 }
 
 const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ userData, role }) => {
-  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState("");
@@ -25,19 +23,19 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ userData, role }) => 
     birthday: "",
   });
 
-  // Initialize form data when user loads
+  // Initialize form data when component loads
   useEffect(() => {
-    if (isLoaded && user) {
+    if (userData) {
       setFormData({
-        firstName: user.firstName || userData?.name || "",
-        lastName: user.lastName || userData?.surname || "",
-        email: user.emailAddresses[0]?.emailAddress || userData?.email || "",
+        firstName: userData?.name || "",
+        lastName: userData?.surname || "",
+        email: userData?.email || "",
         phone: userData?.phone || "",
         bloodType: userData?.bloodType || "",
         birthday: userData?.birthday ? new Date(userData.birthday).toISOString().split('T')[0] : "",
       });
     }
-  }, [isLoaded, user, userData]);
+  }, [userData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -49,34 +47,31 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ userData, role }) => 
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
 
     setIsUpdating(true);
     setMessage("");
 
     try {
-      // Update Clerk user data
-      await user.update({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+      // Update user data via API
+      const response = await fetch('/api/profile/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
-      // Update email if it's different
-      const currentEmail = user.emailAddresses[0]?.emailAddress;
-      if (formData.email !== currentEmail) {
-        await user.createEmailAddress({ email: formData.email });
+      if (response.ok) {
+        setMessage("Profile updated successfully!");
+        
+        // Refresh the page after a short delay
+        setTimeout(() => {
+          router.refresh();
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        setMessage(`Error updating profile: ${errorData.error}`);
       }
-
-      // TODO: Update database user data (teacher/admin specific fields)
-      // This would require an API endpoint to update the database
-      // For now, we'll just update the Clerk data
-
-      setMessage("Profile updated successfully!");
-      
-      // Refresh the page after a short delay
-      setTimeout(() => {
-        router.refresh();
-      }, 1500);
 
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -85,15 +80,6 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ userData, role }) => 
       setIsUpdating(false);
     }
   };
-
-  if (!isLoaded) {
-    return (
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -107,7 +93,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ userData, role }) => 
         <h3 className="text-md font-semibold mb-3">Profile Picture</h3>
         <div className="flex items-center gap-4">
           <Image
-            src={user?.imageUrl || "/noAvatar.png"}
+            src={userData?.imageUrl || "/noAvatar.png"}
             alt="Profile"
             width={48}
             height={48}

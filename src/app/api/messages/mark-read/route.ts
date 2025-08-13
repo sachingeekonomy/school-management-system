@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getUserSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
+    const session = await getUserSession();
+    const userId = session?.id;
     
     if (!userId) {
       return NextResponse.json(

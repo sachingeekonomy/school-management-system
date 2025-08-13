@@ -79,7 +79,7 @@ const SettingsPage = () => {
   };
 
   const handleChangePassword = () => {
-    toast.info("Password change functionality would be implemented here");
+    toast("Password change functionality would be implemented here");
   };
 
   if (isLoading) {

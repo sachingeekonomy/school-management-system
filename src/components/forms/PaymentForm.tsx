@@ -18,7 +18,7 @@ interface Student {
 }
 
 interface PaymentFormProps {
-  type: "create" | "update";
+  type: "create" | "update" | "delete";
   data?: any;
   onClose?: () => void;
 }

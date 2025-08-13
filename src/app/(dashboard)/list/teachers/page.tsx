@@ -231,7 +231,7 @@ const TeacherListPage = async ({
 
   console.log("Teachers data:", data);
   console.log("Teachers count:", data.length);
-  console.log("Unique IDs:", [...new Set(data.map(item => item.id))]);
+  console.log("Unique IDs:", Array.from(new Set(data.map(item => item.id))));
 
   return (
     <div className="bg-white p-4 flex-1  w-full h-full">

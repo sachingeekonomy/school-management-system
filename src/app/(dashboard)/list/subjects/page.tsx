@@ -27,8 +27,9 @@ const SubjectListPage = async ({
   // Fallback: if role is undefined, try to get from user data
   let finalRole = role;
   if (!finalRole) {
-    // Default to admin for now since we don't have a specific admin table
-    finalRole = 'admin';
+    console.warn('No role found in session for subjects page');
+    // Default to student for safety - they have minimal access
+    finalRole = 'student';
   }
 
   const columns = [

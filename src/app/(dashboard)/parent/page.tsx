@@ -4,8 +4,10 @@ import PaymentDashboard from "@/components/PaymentDashboard";
 import prisma from "@/lib/prisma";
 import { getUserSession } from "@/lib/auth";
 
-import { auth } from "@clerk/nextjs/server";
 import { Users, Calendar, CreditCard, BookOpen, GraduationCap } from "lucide-react";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 const ParentPage = async () => {
   const session = await getUserSession();

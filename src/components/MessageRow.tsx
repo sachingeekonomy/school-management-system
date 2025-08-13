@@ -21,10 +21,9 @@ type MessageRowProps = {
   };
   role: string;
   currentUserId: string;
-  onMarkAsRead: (messageId: number) => Promise<void>;
 };
 
-const MessageRow = ({ item, role, currentUserId, onMarkAsRead }: MessageRowProps) => {
+const MessageRow = ({ item, role, currentUserId }: MessageRowProps) => {
 
   return (
     <tr
@@ -76,7 +75,6 @@ const MessageRow = ({ item, role, currentUserId, onMarkAsRead }: MessageRowProps
           item={item} 
           role={role} 
           currentUserId={currentUserId} 
-          onMarkAsRead={onMarkAsRead}
         />
       </td>
     </tr>

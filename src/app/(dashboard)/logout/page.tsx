@@ -110,7 +110,7 @@ const LogoutPage = () => {
         </div>
 
         <p className="text-xs text-gray-500 mt-4">
-          You'll be redirected to the login page after signing out.
+          You&apos;ll be redirected to the login page after signing out.
         </p>
       </div>
     </div>

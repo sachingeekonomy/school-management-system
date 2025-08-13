@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { clerkClient } from '@clerk/nextjs/server';
 
 export async function GET() {
   try {
@@ -19,37 +18,41 @@ export async function GET() {
     
     console.log('Found teachers:', teachers);
     
-    // Test 2: Can we create a test Clerk user?
+    // Test 2: Can we create a test user in the database?
     try {
-      const testUser = await clerkClient.users.createUser({
-        username: `test_${Date.now()}`,
-        password: 'TestPassword123!',
-        firstName: 'Test',
-        lastName: 'User',
-        emailAddress: ['test@example.com'],
-        publicMetadata: { role: "teacher" }
+      const testUser = await prisma.user.create({
+        data: {
+          id: `test_${Date.now()}`,
+          username: `test_${Date.now()}`,
+          name: 'Test',
+          surname: 'User',
+          email: 'test@example.com',
+          role: 'TEACHER'
+        }
       });
       
-      console.log('Test Clerk user created:', testUser.id);
+      console.log('Test user created:', testUser.id);
       
       // Clean up - delete the test user
-      await clerkClient.users.deleteUser(testUser.id);
-      console.log('Test Clerk user deleted');
+      await prisma.user.delete({
+        where: { id: testUser.id }
+      });
+      console.log('Test user deleted');
       
       return NextResponse.json({
         success: true,
         message: 'All tests passed',
         teachersFound: teachers.length,
-        clerkTest: 'passed'
+        authTest: 'passed'
       });
       
-    } catch (clerkError) {
-      console.error('Clerk test failed:', clerkError);
+    } catch (authError) {
+      console.error('Auth test failed:', authError);
       return NextResponse.json({
         success: false,
-        message: 'Clerk test failed',
+        message: 'Auth test failed',
         teachersFound: teachers.length,
-        clerkError: clerkError instanceof Error ? clerkError.message : 'Unknown error'
+        authError: authError instanceof Error ? authError.message : 'Unknown error'
       });
     }
     

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { clerkClient } from '@clerk/nextjs/server';
+import { getUserSession } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,20 +16,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user in Clerk
-    const user = await clerkClient.users.createUser({
-      username: username,
-      password: password,
-      firstName: name,
-      lastName: surname,
-      publicMetadata: { role: 'teacher' }
-    });
+    // Generate a unique ID for the teacher
+    const teacherId = `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Create teacher in database
     const teacher = await prisma.teacher.create({
       data: {
-        id: user.id,
+        id: teacherId,
         username: username,
+        password: password, // In a real app, this should be hashed
         name: name,
         surname: surname,
         email: email || null,
@@ -42,6 +37,19 @@ export async function POST(request: NextRequest) {
           connect: subjects?.map((subjectId: number) => ({ id: subjectId })) || []
         }
       },
+    });
+
+    // Also create user in User table for authentication
+    await prisma.user.create({
+      data: {
+        id: teacherId,
+        username: username,
+        name: name,
+        surname: surname,
+        email: email || null,
+        phone: phone || null,
+        role: 'TEACHER'
+      }
     });
 
     return NextResponse.json(

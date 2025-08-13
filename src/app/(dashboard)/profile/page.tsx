@@ -40,10 +40,10 @@ const ProfilePage = async () => {
     });
     console.log("Teacher data fetched by ID:", userData);
     
-    // If not found by ID, try to find by email
-    if (!userData && user?.emailAddresses?.[0]?.emailAddress) {
+    // If not found by ID, try to find by email from session
+    if (!userData && session?.username) {
       userData = await prisma.teacher.findUnique({
-        where: { email: user.emailAddresses[0].emailAddress },
+        where: { email: `${session.username}@example.com` },
         include: {
           subjects: true,
           classes: true

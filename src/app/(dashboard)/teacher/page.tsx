@@ -6,6 +6,9 @@ import { getUserSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 const TeacherPage = async ({
   searchParams,
 }: {

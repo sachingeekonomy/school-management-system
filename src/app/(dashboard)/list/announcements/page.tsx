@@ -10,6 +10,9 @@ import { Announcement, Class, Prisma } from "@prisma/client";
 import Image from "next/image";
 import { getUserSession } from "@/lib/auth";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type AnnouncementList = Announcement & { class: Class & { grade: { level: number } } };
 const AnnouncementListPage = async ({
   searchParams,

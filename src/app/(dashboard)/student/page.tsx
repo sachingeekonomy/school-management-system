@@ -4,11 +4,19 @@ import EventCalendar from "@/components/EventCalendar";
 import PaymentDashboard from "@/components/PaymentDashboard";
 import prisma from "@/lib/prisma";
 import { getUserSession } from "@/lib/auth";
-import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { GraduationCap, Calendar, CreditCard, BookOpen } from "lucide-react";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 const StudentPage = async () => {
   const session = await getUserSession();
+  
+  if (!session || session.role !== 'student') {
+    redirect('/sign-in');
+  }
+
   const userId = session?.id;
 
   // First, get the student record to find their class

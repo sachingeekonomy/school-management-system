@@ -11,6 +11,9 @@ import Image from "next/image";
 import { getUserRoleSync } from "@/lib/getUserRole";
 import { getUserSession } from "@/lib/auth";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 type ExamList = Exam & {
   lesson: {
     subject: Subject;

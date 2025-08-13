@@ -33,7 +33,7 @@ const menuItems = [
         icon: "/subject.png",
         label: "Subjects",
         href: "/list/subjects",
-        visible: ["admin"],
+        visible: ["admin", "teacher"],
       },
       {
         icon: "/class.png",
@@ -119,19 +119,19 @@ const menuItems = [
 const Menu = async () => {
   // Use the robust role detection system
   const role = await getUserRoleSync();
-  
+
   // Get user data for display
   const user = await getCurrentUser();
-  
+
   // Extract only the necessary user data as plain objects
   const userData = {
     firstName: user?.firstName || "User",
     email: user?.email || "",
     initial: user?.firstName?.charAt(0) || user?.username?.charAt(0) || "U"
   };
-  
+
   console.log("Menu component - User role determined:", role);
-  
+
   return <MenuClient menuItems={menuItems} role={role} userData={userData} />;
 };
 

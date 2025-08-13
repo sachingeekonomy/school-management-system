@@ -10,6 +10,7 @@ import {
   deleteLesson,
   deleteMessage,
   deleteParent,
+  deletePayment,
   deleteResult,
   deleteStudent,
   deleteSubject,
@@ -37,6 +38,7 @@ const deleteActionMap = {
   event: deleteEvent,
   message: deleteMessage,
   announcement: deleteAnnouncement,
+  payment: deletePayment,
 // TODO: OTHER DELETE ACTIONS
 };
 

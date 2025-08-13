@@ -2,7 +2,6 @@
 
 import { useState, useEffect, memo } from "react";
 import FormModal from "./FormModal";
-import { getUserSession } from "@/lib/auth";
 import PaymentForm from "./forms/PaymentForm";
 
 export type FormContainerProps = {
@@ -30,14 +29,6 @@ const FormContainer = memo(({ table, type, data, id }: FormContainerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [relatedData, setRelatedData] = useState<any>({});
   const [isLoading, setIsLoading] = useState(false);
-
-  const session = await getUserSession();
-  const role = session?.role;
-  const currentUserId = session?.id;
-  
-  // Fallback role detection - if role is not detected from session, try to get from user metadata
-  let finalRole = role;
-  if (!finalRole && currentUserId) {
   const handleClick = () => {
     setIsOpen(true);
   };

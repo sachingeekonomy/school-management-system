@@ -17,7 +17,7 @@ import {
   TeacherSchema,
 } from "./formValidationSchemas";
 import prisma from "./prisma";
-import { clerkClient } from "@clerk/nextjs/server";
+import { getUserSession } from "./auth";
 
 type CurrentState = { success: boolean; error: boolean; message?: string };
 
@@ -273,23 +273,14 @@ export const createTeacher = async (
   try {
     console.log("Creating teacher with data:", data);
     
-    // Create user in Clerk first
-    const user = await clerkClient.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.name,
-      lastName: data.surname,
-      emailAddress: data.email ? [data.email] : ["test@example.com"],
-      phoneNumber: data.phone ? [data.phone] : ["+15551234567"],
-      publicMetadata: { role: "teacher" }
-    });
-
-    console.log("Clerk user created with ID:", user.id);
+    // Generate a unique ID for the teacher
+    const teacherId = `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Prepare teacher data
     const teacherData: any = {
-      id: user.id, // Use Clerk user ID
+      id: teacherId,
       username: data.username,
+      password: data.password || "defaultPassword123", // In a real app, this should be hashed
       name: data.name,
       surname: data.surname,
       email: data.email || null,
@@ -316,17 +307,24 @@ export const createTeacher = async (
       data: teacherData,
     });
 
+    // Also create user in User table for authentication
+    await prisma.user.create({
+      data: {
+        id: teacherId,
+        username: data.username,
+        name: data.name,
+        surname: data.surname,
+        email: data.email || null,
+        phone: data.phone || null,
+        role: 'TEACHER'
+      }
+    });
+
     console.log("Teacher created successfully");
     // revalidatePath("/list/teachers");
     return { success: true, error: false };
   } catch (err: any) {
     console.error("Error creating teacher:", err);
-    
-    // Handle specific Clerk errors
-    if (err.errors && err.errors.length > 0) {
-      const errorMessage = err.errors[0].message;
-      return { success: false, error: true, message: errorMessage };
-    }
     
     // Handle other types of errors
     if (err.message) {
@@ -346,13 +344,6 @@ export const updateTeacher = async (
   }
   try {
     console.log("Updating teacher with data:", data);
-
-    // Update user in Clerk
-    await clerkClient.users.updateUser(data.id, {
-      username: data.username,
-      firstName: data.name,
-      lastName: data.surname,
-    });
 
     // Update in Prisma
     await prisma.teacher.update({
@@ -480,20 +471,16 @@ export const deleteTeacher = async (
       },
     });
 
-    // Delete the user from Clerk
-    await clerkClient.users.deleteUser(id);
+    // Also delete from User table
+    await prisma.user.delete({
+      where: { id: id },
+    });
 
     console.log("Teacher deleted successfully");
     // revalidatePath("/list/teachers");
     return { success: true, error: false };
   } catch (err: any) {
     console.error("Error deleting teacher:", err);
-    
-    // Handle specific Clerk errors
-    if (err.errors && err.errors.length > 0) {
-      const errorMessage = err.errors[0].message;
-      return { success: false, error: true, message: errorMessage };
-    }
     
     // Handle other types of errors
     if (err.message) {
@@ -519,20 +506,14 @@ export const createStudent = async (
       return { success: false, error: true, message: "Class is at full capacity" };
     }
 
-    const user = await clerkClient.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.name,
-      lastName: data.surname,
-      emailAddress: data.email ? [data.email] : ["test@example.com"],
-      phoneNumber: data.phone ? [data.phone] : ["+15551234567"], // Add phone number
-      publicMetadata: { role: "student" }
-    });
+    // Generate a unique ID for the student
+    const studentId = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     await prisma.student.create({
       data: {
-        id: user.id,
+        id: studentId,
         username: data.username,
+        password: data.password || "defaultPassword123", // In a real app, this should be hashed
         name: data.name,
         surname: data.surname,
         email: data.email || null,
@@ -548,16 +529,23 @@ export const createStudent = async (
       },
     });
 
+    // Also create user in User table for authentication
+    await prisma.user.create({
+      data: {
+        id: studentId,
+        username: data.username,
+        name: data.name,
+        surname: data.surname,
+        email: data.email || null,
+        phone: data.phone || null,
+        role: 'STUDENT'
+      }
+    });
+
     // revalidatePath("/list/students");
     return { success: true, error: false };
   } catch (err: any) {
     console.log(err);
-    
-    // Handle specific Clerk errors
-    if (err.errors && err.errors.length > 0) {
-      const errorMessage = err.errors[0].message;
-      return { success: false, error: true, message: errorMessage };
-    }
     
     // Handle other types of errors
     if (err.message) {
@@ -576,19 +564,13 @@ export const updateStudent = async (
     return { success: false, error: true, message: "Student ID is required" };
   }
   try {
-    const user = await clerkClient.users.updateUser(data.id, {
-      username: data.username,
-      ...(data.password !== "" && { password: data.password }),
-      firstName: data.name,
-      lastName: data.surname,
-    });
-
     await prisma.student.update({
       where: {
         id: data.id,
       },
       data: {
         username: data.username,
+        ...(data.password && data.password !== "" && { password: data.password }),
         name: data.name,
         surname: data.surname,
         email: data.email || null,
@@ -603,16 +585,23 @@ export const updateStudent = async (
         parentId: data.parentId,
       },
     });
+
+    // Also update user in User table
+    await prisma.user.update({
+      where: { id: data.id },
+      data: {
+        username: data.username,
+        name: data.name,
+        surname: data.surname,
+        email: data.email || null,
+        phone: data.phone || null,
+      }
+    });
+
     // revalidatePath("/list/students");
     return { success: true, error: false };
   } catch (err: any) {
     console.log(err);
-    
-    // Handle specific Clerk errors
-    if (err.errors && err.errors.length > 0) {
-      const errorMessage = err.errors[0].message;
-      return { success: false, error: true, message: errorMessage };
-    }
     
     // Handle other types of errors
     if (err.message) {
@@ -629,12 +618,15 @@ export const deleteStudent = async (
 ) => {
   const id = data.get("id") as string;
   try {
-    await clerkClient.users.deleteUser(id);
-
     await prisma.student.delete({
       where: {
         id: id,
       },
+    });
+
+    // Also delete from User table
+    await prisma.user.delete({
+      where: { id: id },
     });
 
     // revalidatePath("/list/students");
@@ -886,24 +878,8 @@ export const createParent = async (
   try {
     console.log("Creating parent with data:", data);
     
-    // Create user in Clerk if username and password are provided
-    let userId: string;
-    
-    if (data.username && data.password) {
-      const user = await clerkClient.users.createUser({
-        username: data.username,
-        password: data.password,
-        firstName: data.name,
-        lastName: data.surname,
-        emailAddress: data.email ? [data.email] : ["test@example.com"],
-        phoneNumber: data.phone ? [data.phone] : ["+15551234567"],
-        publicMetadata: { role: "parent" }
-      });
-      userId = user.id;
-    } else {
-      // Generate a unique ID for the parent (fallback for when no auth details provided)
-      userId = `parent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
+    // Generate a unique ID for the parent
+    const userId = `parent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     console.log("Generated parent ID:", userId);
 
@@ -911,6 +887,7 @@ export const createParent = async (
     const parentData: any = {
       id: userId,
       username: data.username || `${data.name.toLowerCase()}_${data.surname.toLowerCase()}_${Date.now()}`,
+      password: data.password || "defaultPassword123", // In a real app, this should be hashed
       name: data.name,
       surname: data.surname,
       email: data.email || null,
@@ -922,16 +899,23 @@ export const createParent = async (
       data: parentData,
     });
 
+    // Also create user in User table for authentication
+    await prisma.user.create({
+      data: {
+        id: userId,
+        username: parentData.username,
+        name: data.name,
+        surname: data.surname,
+        email: data.email || null,
+        phone: data.phone,
+        role: 'PARENT'
+      }
+    });
+
     console.log("Parent created successfully");
     return { success: true, error: false };
   } catch (err: any) {
     console.log(err);
-    
-    // Handle specific Clerk errors
-    if (err.errors && err.errors.length > 0) {
-      const errorMessage = err.errors[0].message;
-      return { success: false, error: true, message: errorMessage };
-    }
     
     // Handle other types of errors
     if (err.message) {
@@ -1367,44 +1351,21 @@ const ensureUserExists = async (userId: string, role: string) => {
       });
     }
 
-    // If user not found in role-specific tables, it might be a Clerk user
+    // If user not found in role-specific tables, create a fallback user entry
     if (!userData) {
-      // Try to get user info from Clerk
-      try {
-        const { clerkClient } = await import("@clerk/nextjs/server");
-        const clerkUser = await clerkClient.users.getUser(userId);
-        
-        // Create user in User table with Clerk data
-        const newUser = await prisma.user.create({
-          data: {
-            id: userId,
-            username: clerkUser.username || `user_${userId.slice(-8)}`,
-            name: clerkUser.firstName || "User",
-            surname: clerkUser.lastName || "Unknown",
-            email: clerkUser.emailAddresses[0]?.emailAddress || null,
-            phone: clerkUser.phoneNumbers[0]?.phoneNumber || null,
-            role: role.toUpperCase() as any,
-          }
-        });
-        
-        return newUser;
-      } catch (clerkError) {
-        console.error("Error getting user from Clerk:", clerkError);
-        // Create a fallback user entry
-        const newUser = await prisma.user.create({
-          data: {
-            id: userId,
-            username: `user_${userId.slice(-8)}`,
-            name: "User",
-            surname: "Unknown",
-            email: null,
-            phone: null,
-            role: role.toUpperCase() as any,
-          }
-        });
-        
-        return newUser;
-      }
+      const newUser = await prisma.user.create({
+        data: {
+          id: userId,
+          username: `user_${userId.slice(-8)}`,
+          name: "User",
+          surname: "Unknown",
+          email: null,
+          phone: null,
+          role: role.toUpperCase() as any,
+        }
+      });
+      
+      return newUser;
     }
 
     // Create user in User table
@@ -1434,8 +1395,9 @@ export const createMessage = async (
   try {
     console.log("Creating message with data:", data);
     
-    // Get the current user ID from auth
-    const { userId } = await import("@clerk/nextjs/server").then(m => m.auth());
+    // Get the current user ID from session
+    const session = await getUserSession();
+    const userId = session?.id;
     
     if (!userId) {
       console.error("No authenticated user found");
@@ -1626,8 +1588,9 @@ export const markMessageAsRead = async (
   try {
     console.log("Marking message as read:", data.messageId);
     
-    // Get the current user ID from auth
-    const { userId } = await import("@clerk/nextjs/server").then(m => m.auth());
+    // Get the current user ID from session
+    const session = await getUserSession();
+    const userId = session?.id;
     
     if (!userId) {
       console.error("No authenticated user found");
@@ -1648,6 +1611,28 @@ export const markMessageAsRead = async (
     return { success: true, error: false };
   } catch (err) {
     console.error("Error marking message as read:", err);
+    return { success: false, error: true };
+  }
+};
+
+ export const deletePayment = async (
+  currentState: CurrentState,
+  data: FormData
+) => {
+  const id = data.get("id") as string;
+  try {
+    console.log("Deleting payment with ID:", id);
+    
+    await prisma.payment.delete({
+      where: {
+        id: id,
+      },
+    });
+
+    console.log("Payment deleted successfully");
+    return { success: true, error: false };
+  } catch (err) {
+    console.error("Error deleting payment:", err);
     return { success: false, error: true };
   }
 };
