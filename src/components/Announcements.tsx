@@ -1,5 +1,14 @@
 import prisma from "@/lib/prisma";
 import { getUserSession } from "@/lib/auth";
+import Link from "next/link";
+
+const ViewAllButton = () => {
+  return (
+    <Link href="/list/announcements">
+      <span className="text-xs text-orange-200 hover:text-white cursor-pointer transition-colors">View All</span>
+    </Link>
+  );
+};
 
 const Announcements = async () => {
   const session = await getUserSession();
@@ -29,7 +38,7 @@ const Announcements = async () => {
     <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-white">Announcements</h1>
-        <span className="text-xs text-orange-200 hover:text-white cursor-pointer transition-colors">View All</span>
+        <ViewAllButton />
       </div>
       <div className="flex flex-col gap-4 mt-4">
         {data[0] && (

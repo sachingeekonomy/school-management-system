@@ -3,6 +3,7 @@ import AttendanceChartContainer from "@/components/AttendanceChartContainer";
 import CountChartContainer from "@/components/CountChartContainer";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
 import FinanceChartContainer from "@/components/FinanceChartContainer";
+import PaymentAnalyticsContainer from "@/components/PaymentAnalyticsContainer";
 import UserCard from "@/components/UserCard";
 import prisma from "@/lib/prisma";
 import { getUserRoleSync } from "@/lib/getUserRole";
@@ -181,10 +182,7 @@ const AdminPage = async ({
                     <h2 className="text-2xl font-bold text-white">User Statistics</h2>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="text-sm text-blue-100 bg-white/10 px-4 py-2 rounded-full font-medium border border-white/20">
-                      Live Data
-                    </div>
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
+                   
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -245,22 +243,24 @@ const AdminPage = async ({
             </div>
 
             {/* Enhanced Finance Chart Section */}
-            {/* <div className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -translate-y-36 translate-x-36"></div>
-              <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-28 -translate-x-28"></div>
-              <div className="absolute top-1/2 right-1/3 w-28 h-28 bg-white/5 rounded-full animate-pulse"></div>
-              
-              <div className="relative p-8 text-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
-                  <h3 className="text-xl font-bold text-white">Financial Overview</h3>
-                </div>
-                <div className="h-[450px] transform group-hover:scale-[1.02] transition-transform duration-300">
-                  <FinanceChartContainer />
-                </div>
-              </div>
-            </div> */}
+            {/* Enhanced Payment Analytics Chart Section */}
+            <div className="group relative overflow-hidden bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500">
+  {/* Background Pattern */}
+  <div className="absolute inset-0 bg-black/10"></div>
+  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+  <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-pulse"></div>
+  
+  <div className="relative p-8 text-white">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-4 h-4 bg-white/80 rounded-full shadow-lg"></div>
+      <h3 className="text-xl font-bold text-white">Payment Analytics</h3>
+    </div>
+    <div className="h-[700px] transform group-hover:scale-[1.02] transition-transform duration-300">
+      <PaymentAnalyticsContainer />
+    </div>
+  </div>
+</div>
           </div>
 
           {/* RIGHT SIDE - Enhanced Sidebar */}
@@ -298,12 +298,7 @@ const AdminPage = async ({
                     <div className="w-4 h-4 bg-white/80 rounded-full animate-pulse shadow-lg"></div>
                     <h3 className="text-2xl font-bold text-white">Recent Announcements</h3>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm text-blue-100 bg-white/10 px-4 py-2 rounded-full font-medium border border-white/20">
-                      Live Data
-                    </div>
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
-                  </div>
+                 
                 </div>
                 <div className="transform group-hover:scale-[1.02] transition-transform duration-300">
                   <Announcements />

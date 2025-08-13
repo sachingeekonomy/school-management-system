@@ -42,8 +42,9 @@ const StudentForm = ({
     resolver: zodResolver(studentSchema),
   });
 
-  const [img, setImg] = useState<string>("");
+  const [img, setImg] = useState<string>(data?.img || "");
   const [showPassword, setShowPassword] = useState(false);
+  const [removeImage, setRemoveImage] = useState(false);
 
   const [state, formAction] = useFormState(
     type === "create" ? createStudent : updateStudent,
@@ -61,6 +62,7 @@ const StudentForm = ({
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setImg(result);
+        setRemoveImage(false); // Reset remove flag when new image is uploaded
       };
       reader.readAsDataURL(file);
     }
@@ -69,7 +71,7 @@ const StudentForm = ({
   const onSubmit = handleSubmit((data) => {
     console.log("hello");
     console.log(data);
-    formAction({ ...data, img: img });
+    formAction({ ...data, img: removeImage ? "" : img });
   });
 
   const router = useRouter();
@@ -152,11 +154,21 @@ const StudentForm = ({
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-400  file:text-white hover:file:bg-lamaSky/90 file:cursor-pointer"
                 />
               </div>
-              {img && (
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
-                  <Image src={img} alt="Preview" width={64} height={64} className="w-full h-full object-cover" />
-                </div>
-              )}
+                             {(img || data?.img) && !removeImage && (
+                 <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 relative">
+                   <Image src={img || data?.img} alt="Preview" width={64} height={64} className="w-full h-full object-cover" />
+                   {type === "update" && (
+                     <button
+                       type="button"
+                       onClick={() => setRemoveImage(true)}
+                       className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                       title="Remove image"
+                     >
+                       ×
+                     </button>
+                   )}
+                 </div>
+               )}
             </div>
           </div>
         </div>

@@ -49,7 +49,10 @@ const PaymentForm = ({ type, data, onClose }: PaymentFormProps) => {
         const response = await fetch('/api/students');
         if (response.ok) {
           const data = await response.json();
-          setStudents(data.students || []);
+          console.log('Students API response:', data);
+          setStudents(Array.isArray(data) ? data : []);
+        } else {
+          console.error('Failed to fetch students:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Error fetching students:', error);
@@ -85,10 +88,14 @@ const PaymentForm = ({ type, data, onClose }: PaymentFormProps) => {
   }, []);
 
   const filteredStudents = students.filter(student =>
-    `${student.name} ${student.surname} ${student.email || ''} ${student.class.name}`
+    `${student.name} ${student.surname} ${student.email || ''} ${student.class?.name || ''}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+
+  console.log('Students:', students.length);
+  console.log('Search term:', searchTerm);
+  console.log('Filtered students:', filteredStudents.length);
 
   const handleStudentSelect = (student: Student) => {
     setSelectedStudent(student);
@@ -205,7 +212,8 @@ const PaymentForm = ({ type, data, onClose }: PaymentFormProps) => {
                         </div>
                         <div className="text-sm text-gray-600">
                           {student.email && `${student.email} • `}
-                          Class {student.class.name} (Grade {student.class.grade.level})
+                          {student.class?.name ? `Class ${student.class.name}` : 'No class assigned'}
+                          {student.class?.grade?.level && ` (Grade ${student.class.grade.level})`}
                         </div>
                       </div>
                     ))
@@ -222,7 +230,8 @@ const PaymentForm = ({ type, data, onClose }: PaymentFormProps) => {
                   ✓ Selected: {selectedStudent.name} {selectedStudent.surname}
                 </div>
                 <div className="text-xs text-green-700">
-                  Class: {selectedStudent.class.name} (Grade {selectedStudent.class.grade.level})
+                  Class: {selectedStudent.class?.name || 'No class assigned'}
+                  {selectedStudent.class?.grade?.level && ` (Grade ${selectedStudent.class.grade.level})`}
                 </div>
               
               </div>

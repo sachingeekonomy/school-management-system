@@ -586,17 +586,33 @@ export const updateStudent = async (
       },
     });
 
-    // Also update user in User table
-    await prisma.user.update({
-      where: { id: data.id },
-      data: {
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-      }
-    });
+    // Also update user in User table if it exists
+    try {
+      await prisma.user.update({
+        where: { id: data.id },
+        data: {
+          username: data.username,
+          name: data.name,
+          surname: data.surname,
+          email: data.email || null,
+          phone: data.phone || null,
+        }
+      });
+    } catch (userError) {
+      // If user doesn't exist, create it
+      console.log("User record not found, creating new user record");
+      await prisma.user.create({
+        data: {
+          id: data.id,
+          username: data.username,
+          name: data.name,
+          surname: data.surname,
+          email: data.email || null,
+          phone: data.phone || null,
+          role: 'STUDENT'
+        }
+      });
+    }
 
     // revalidatePath("/list/students");
     return { success: true, error: false };
