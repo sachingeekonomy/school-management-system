@@ -226,6 +226,7 @@ const StudentListPage = async ({
     }),
   ]);
 
+  console.log("data>>",data);
   // Sort options for students
   const sortOptions = [
     { value: "name-asc", label: "Name (A-Z)", field: "name", direction: "asc" as const },
