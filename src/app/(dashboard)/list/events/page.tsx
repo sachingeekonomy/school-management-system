@@ -34,6 +34,11 @@ const EventListPage = async ({
       accessor: "title",
     },
     {
+      header: "Description",
+      accessor: "description",
+      className: "hidden lg:table-cell",
+    },
+    {
       header: "Class",
       accessor: "class",
     },
@@ -70,6 +75,13 @@ const EventListPage = async ({
       <td className="flex items-center gap-4 p-4">
         <div className="flex flex-col">
           <h3 className="font-semibold">{item.title}</h3>
+        </div>
+      </td>
+      <td className="hidden lg:table-cell">
+        <div className="flex flex-col">
+          <span className="text-sm text-gray-700 max-w-xs truncate" title={item.description}>
+            {item.description}
+          </span>
         </div>
       </td>
       <td>
@@ -148,20 +160,57 @@ const EventListPage = async ({
     }
   }
 
-  // ROLE CONDITIONS
+  // ROLE CONDITIONS - Only apply filtering for non-admin users
+  if (role !== "admin") {
+    if (role === "teacher") {
+      // Teachers can see events for classes they teach
+      query.OR = [
+        { classId: null }, // General events
+        {
+          class: {
+            lessons: {
+              some: {
+                teacherId: currentUserId!
+              }
+            }
+          }
+        }
+      ];
+    } else if (role === "student") {
+      // Students can see events for their class and general events
+      query.OR = [
+        { classId: null }, // General events
+        {
+          class: {
+            students: {
+              some: {
+                id: currentUserId!
+              }
+            }
+          }
+        }
+      ];
+    } else if (role === "parent") {
+      // Parents can see events for classes their children are in
+      query.OR = [
+        { classId: null }, // General events
+        {
+          class: {
+            students: {
+              some: {
+                parentId: currentUserId!
+              }
+            }
+          }
+        }
+      ];
+    }
+  }
 
-  const roleConditions = {
-    teacher: { lessons: { some: { teacherId: currentUserId! } } },
-    student: { students: { some: { id: currentUserId! } } },
-    parent: { students: { some: { parentId: currentUserId! } } },
-  };
-
-  query.OR = [
-    { classId: null },
-    {
-      class: roleConditions[role as keyof typeof roleConditions] || {},
-    },
-  ];
+  // Debug logging
+  console.log("Event query:", JSON.stringify(query, null, 2));
+  console.log("User role:", role);
+  console.log("Current user ID:", currentUserId);
 
   const [data, count] = await prisma.$transaction([
     prisma.event.findMany({
@@ -178,6 +227,9 @@ const EventListPage = async ({
     }),
     prisma.event.count({ where: query }),
   ]);
+
+  console.log("Events found:", data.length);
+  console.log("Total count:", count);
 
   return (
     <div className="bg-white p-4 flex-1  w-full h-full">

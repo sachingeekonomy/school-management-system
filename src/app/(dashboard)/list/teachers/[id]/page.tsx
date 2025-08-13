@@ -207,12 +207,7 @@ const SingleTeacherPage = async ({
                   <span className="text-gray-600">Email:</span>
                   <span className="font-semibold">{teacher.email || "-"}</span>
                 </div>
-            
-                <div className="flex items-center gap-2 md:col-span-2">
-                  <Image src="/profile.png" alt="" width={14} height={14} />
-                  <span className="text-gray-600">Address:</span>
-                  <span className="font-semibold">{teacher.address}</span>
-                </div>
+          
                 <div className="flex items-center gap-2">
                   <Image src="/maleFemale.png" alt="" width={14} height={14} />
                   <span className="text-gray-600">Gender:</span>
@@ -222,6 +217,11 @@ const SingleTeacherPage = async ({
                   <Image src="/phone.png" alt="" width={14} height={14} />
                   <span className="text-gray-600">Phone:</span>
                   <span className="font-semibold">{teacher.phone || "-"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Image src="/profile.png" alt="" width={14} height={14} />
+                  <span className="text-gray-600">Address:</span>
+                  <span className="font-semibold">{teacher.address}</span>
                 </div>
               </div>
             </div>

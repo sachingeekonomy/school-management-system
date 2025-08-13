@@ -8,6 +8,30 @@ import { toast } from "react-hot-toast";
 const LogoutPage = () => {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [userData, setUserData] = useState<{
+    firstName: string;
+    lastName: string;
+    role: string;
+    username: string;
+    profileImage: string | null;
+  } | null>(null);
+
+  // Fetch user data from session
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data.user);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -68,15 +92,15 @@ const LogoutPage = () => {
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center justify-center gap-3 mb-2">
             <Image
-              src="/noAvatar.png"
+              src={userData?.profileImage || "/noAvatar.png"}
               alt="Profile"
               width={40}
               height={40}
               className="w-10 h-10 rounded-full object-cover"
             />
             <div className="text-left">
-              <p className="font-medium text-gray-800">
-                User Account
+              <p className="font-medium text-gray-800 text-center">
+                {userData ? `${userData.firstName}` : "User Account"}
               </p>
               <p className="text-sm text-gray-500">
                 School Management System

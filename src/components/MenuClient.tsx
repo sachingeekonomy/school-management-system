@@ -56,7 +56,7 @@ const MenuClient = ({ menuItems, role, userData }: MenuClientProps) => {
         <div className="flex flex-col gap-3" key={section.title}>
           {/* Section Header - Only on Desktop */}
           <div className="px-2 lg:px-4">
-            <span className="hidden lg:block text-xs font-semibold text-white/70 uppercase tracking-wider bg-white/5 px-3 py-1 rounded-lg">
+            <span className="hidden lg:block text-xs font-semibold text-white/70 uppercase tracking-wider  px-3 py-1 rounded-lg">
               {section.title}
             </span>
           </div>

@@ -203,13 +203,29 @@ const StudentForm = ({
         <div>
           <span className="text-xs text-gray-400 font-medium">Additional Details</span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-            <InputField
-              label="Blood Type"
-              name="bloodType"
-              defaultValue={data?.bloodType}
-              register={register}
-              error={errors.bloodType}
-            />
+            <div className="flex flex-col gap-2 w-full">
+              <label className="text-xs text-gray-500">Blood Type</label>
+              <select
+                className="ring-[1.5px] ring-gray-300 p-3 rounded-md text-sm w-full"
+                {...register("bloodType")}
+                defaultValue={data?.bloodType}
+              >
+                <option value="">Select blood type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+              {errors.bloodType?.message && (
+                <p className="text-xs text-red-400">
+                  {errors.bloodType.message.toString()}
+                </p>
+              )}
+            </div>
             <InputField
               label="Birthday"
               name="birthday"

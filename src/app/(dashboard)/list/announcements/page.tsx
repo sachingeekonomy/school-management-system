@@ -26,6 +26,7 @@ const AnnouncementListPage = async ({
   const currentUserId = session?.id;
 
   console.log("User role determined:", role);
+  console.log("Current user ID:", currentUserId);
   
   const columns = [
     {
@@ -96,42 +97,65 @@ const AnnouncementListPage = async ({
 
   const p = page ? parseInt(page) : 1;
 
-  // URL PARAMS CONDITION
-
+  // Build the base query
   const query: Prisma.AnnouncementWhereInput = {};
 
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined) {
-        switch (key) {
-          case "search":
-            query.OR = [
-              { title: { contains: value, mode: "insensitive" } },
-              { description: { contains: value, mode: "insensitive" } },
-              { class: { name: { contains: value, mode: "insensitive" } } },
-            ];
-            break;
-          default:
-            break;
+  // Add search functionality
+  if (queryParams.search) {
+    query.OR = [
+      { title: { contains: queryParams.search, mode: "insensitive" } },
+      { description: { contains: queryParams.search, mode: "insensitive" } },
+      { class: { name: { contains: queryParams.search, mode: "insensitive" } } },
+    ];
+  }
+
+  // Role-based filtering
+  if (role === "admin") {
+    // Admin can see all announcements
+    // No additional filtering needed
+  } else if (role === "teacher" && currentUserId) {
+    // Teachers can see announcements for their classes or general announcements
+    query.OR = [
+      { classId: null }, // General announcements
+      {
+        class: {
+          OR: [
+            { supervisorId: currentUserId }, // Classes they supervise
+            { lessons: { some: { teacherId: currentUserId } } } // Classes they teach
+          ]
         }
       }
+    ];
+  } else if (role === "student" && currentUserId) {
+    // Students can see announcements for their class or general announcements
+    const student = await prisma.student.findUnique({
+      where: { id: currentUserId },
+      select: { classId: true }
+    });
+    
+    if (student) {
+      query.OR = [
+        { classId: null }, // General announcements
+        { classId: student.classId } // Their specific class
+      ];
+    }
+  } else if (role === "parent" && currentUserId) {
+    // Parents can see announcements for their children's classes or general announcements
+    const parentStudents = await prisma.student.findMany({
+      where: { parentId: currentUserId },
+      select: { classId: true }
+    });
+    
+    if (parentStudents.length > 0) {
+      const classIds = parentStudents.map(s => s.classId);
+      query.OR = [
+        { classId: null }, // General announcements
+        { classId: { in: classIds } } // Their children's classes
+      ];
     }
   }
 
-  // ROLE CONDITIONS
-
-  const roleConditions = {
-    teacher: { lessons: { some: { teacherId: currentUserId! } } },
-    student: { students: { some: { id: currentUserId! } } },
-    parent: { students: { some: { parentId: currentUserId! } } },
-  };
-
-  query.OR = [
-    { classId: null },
-    {
-      class: roleConditions[role as keyof typeof roleConditions] || {},
-    },
-  ];
+  console.log("Final query:", JSON.stringify(query, null, 2));
 
   const [data, count] = await prisma.$transaction([
     prisma.announcement.findMany({
@@ -143,11 +167,17 @@ const AnnouncementListPage = async ({
           },
         },
       },
+      orderBy: {
+        date: 'desc'
+      },
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.announcement.count({ where: query }),
   ]);
+
+  console.log("Found announcements:", data.length);
+  console.log("Total count:", count);
 
   return (
     <div className="bg-white p-4 flex-1  w-full h-full">
