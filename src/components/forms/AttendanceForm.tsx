@@ -27,9 +27,20 @@ const AttendanceForm = ({
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
+    setValue,
   } = useForm<AttendanceSchema>({
     resolver: zodResolver(attendanceSchema),
+    defaultValues: {
+      id: data?.id,
+      studentId: data?.studentId || "",
+      lessonId: data?.lessonId,
+      present: data?.present,
+    },
   });
+
+  // Watch the present value to make radio buttons controlled
+  const presentValue = watch("present");
 
   const [state, formAction] = useFormState(
     type === "create" ? createAttendance : updateAttendance,
@@ -49,6 +60,18 @@ const AttendanceForm = ({
     }
   }, [state, router, type, setOpen]);
 
+  // Reset form when data changes (for updates)
+  useEffect(() => {
+    if (data && type === "update") {
+      reset({
+        id: data.id,
+        studentId: data.studentId,
+        lessonId: data.lessonId,
+        present: data.present,
+      });
+    }
+  }, [data, type, reset]);
+
   const onSubmit = handleSubmit((data) => {
     console.log("Submitting attendance data:", data);
     // Convert present from string to boolean
@@ -61,6 +84,11 @@ const AttendanceForm = ({
   });
 
   const { students = [], lessons = [] } = relatedData || {};
+
+  // Debug logging
+  console.log("AttendanceForm - type:", type);
+  console.log("AttendanceForm - data:", data);
+  console.log("AttendanceForm - relatedData:", relatedData);
 
   // Show loading state if data is not yet loaded
   if (!relatedData || Object.keys(relatedData).length === 0) {
@@ -106,7 +134,6 @@ const AttendanceForm = ({
               <select 
                 className="ring-[1.5px] ring-gray-300 p-3 rounded-md text-sm w-full" 
                 {...register("studentId")} 
-                defaultValue={data?.studentId}
               >
                 <option value="">Select a student</option>
                 {students?.map((student: { id: string; name: string; surname: string; class: { name: string } }) => (
@@ -124,7 +151,6 @@ const AttendanceForm = ({
               <select 
                 className="ring-[1.5px] ring-gray-300 p-3 rounded-md text-sm w-full" 
                 {...register("lessonId")} 
-                defaultValue={data?.lessonId}
               >
                 <option value="">Select a lesson</option>
                 {lessons?.map((lesson: { id: number; name: string; day: string; subject: { name: string }; class: { name: string } }) => (
@@ -142,14 +168,14 @@ const AttendanceForm = ({
 
         <div>
           <span className="text-xs text-gray-400 font-medium">Attendance Status</span>
-          <div className="mt-2">
-                         <div className="flex items-center gap-4">
+                     <div className="mt-2">
+             <div className="flex items-center gap-4">
                <label className="flex items-center gap-2 cursor-pointer">
                  <input
                    type="radio"
                    value="true"
-                   {...register("present")}
-                   defaultChecked={data?.present === true || data?.present === "true"}
+                   checked={String(presentValue) === "true"}
+                   onChange={(e) => setValue("present", e.target.value === "true")}
                    className="w-4 h-4 text-lamaSky bg-gray-100 border-gray-300 focus:ring-lamaSky"
                  />
                  <span className="text-sm font-medium text-green-700">Present</span>
@@ -158,8 +184,8 @@ const AttendanceForm = ({
                  <input
                    type="radio"
                    value="false"
-                   {...register("present")}
-                   defaultChecked={data?.present === false || data?.present === "false"}
+                   checked={String(presentValue) === "false"}
+                   onChange={(e) => setValue("present", e.target.value === "true")}
                    className="w-4 h-4 text-lamaSky bg-gray-100 border-gray-300 focus:ring-lamaSky"
                  />
                  <span className="text-sm font-medium text-red-700">Absent</span>
@@ -171,15 +197,9 @@ const AttendanceForm = ({
           </div>
         </div>
 
+        {/* Hidden field for ID when updating */}
         {data && (
-          <InputField 
-            label="Id" 
-            name="id" 
-            defaultValue={data?.id} 
-            register={register} 
-            error={errors?.id} 
-            hidden 
-          />
+          <input type="hidden" {...register("id")} />
         )}
       </div>
 
