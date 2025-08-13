@@ -22,6 +22,7 @@ const StudentListPage = async ({
 }) => {
   const session = await getUserSession();
   const role = session?.role;
+  const userId = session?.id;
 
   // Debug logging
   console.log("Session:", session);
@@ -115,6 +116,18 @@ const StudentListPage = async ({
   // URL PARAMS CONDITION
 
   const query: Prisma.StudentWhereInput = {};
+
+  // If user is a teacher, filter students to only show their students
+  if (finalRole === 'teacher' && userId ) {
+    query.class = {
+      supervisorId: userId,
+    };
+  }
+  
+  // If user is a parent, filter students to only show their children
+  if (finalRole === 'parent' && userId ) {
+    query.parentId = userId;
+  }
 
   // Handle sorting
   let orderBy: any = { id: 'asc' }; // Default sorting
@@ -228,7 +241,16 @@ const StudentListPage = async ({
     {
       title: "Class",
       param: "classId",
-      options: classes.map(cls => ({
+      options: (() => {
+        if (finalRole === 'teacher' && userId) {
+          return classes.filter(cls => cls.supervisorId === userId);
+        } else if (finalRole === 'parent' && userId) {
+          // For parents, get classes where their children are enrolled
+          const parentStudentClasses = data.map(student => student.class.id);
+          return classes.filter(cls => parentStudentClasses.includes(cls.id));
+        }
+        return classes;
+      })().map(cls => ({
         value: cls.id.toString(),
         label: `${cls.name} (Grade ${cls.grade.level})`,
         param: "classId"
@@ -271,7 +293,17 @@ const StudentListPage = async ({
     <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
-        <h1 className="hidden md:block text-lg font-semibold">All Students</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="hidden md:block text-lg font-semibold">
+            {finalRole === 'teacher' ? 'My Students' : 
+             finalRole === 'parent' ? 'My Children' : 'All Students'}
+          </h1>
+          {(finalRole === 'teacher' || finalRole === 'parent') && (
+            <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              Filtered View
+            </span>
+          )}
+        </div>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">

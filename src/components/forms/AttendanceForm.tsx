@@ -54,7 +54,7 @@ const AttendanceForm = ({
     // Convert present from string to boolean
     const formData = {
       ...data,
-      present: data.present === "true"
+      present: String(data.present) === "true"
     };
     console.log("Processed form data:", formData);
     formAction(formData);
@@ -84,9 +84,17 @@ const AttendanceForm = ({
   return (
     <form className="flex flex-col gap-6 max-h-[80vh] overflow-y-auto px-6 py-4" onSubmit={onSubmit}>
       <div className="flex items-center justify-between sticky top-0 bg-white pb-4 border-b -mx-6 px-6">
-        <h1 className="text-xl font-semibold">
-          {type === "create" ? "Create a new attendance record" : "Update the attendance record"}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold">
+            {type === "create" ? "Create a new attendance record" : "Update the attendance record"}
+          </h1>
+          {/* Show filtered indicator for teachers */}
+          {students.length > 0 && students.length < 100 && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              Filtered View
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -141,7 +149,7 @@ const AttendanceForm = ({
                    type="radio"
                    value="true"
                    {...register("present")}
-                   defaultChecked={data?.present === true}
+                   defaultChecked={data?.present === true || data?.present === "true"}
                    className="w-4 h-4 text-lamaSky bg-gray-100 border-gray-300 focus:ring-lamaSky"
                  />
                  <span className="text-sm font-medium text-green-700">Present</span>
@@ -151,7 +159,7 @@ const AttendanceForm = ({
                    type="radio"
                    value="false"
                    {...register("present")}
-                   defaultChecked={data?.present === false}
+                   defaultChecked={data?.present === false || data?.present === "false"}
                    className="w-4 h-4 text-lamaSky bg-gray-100 border-gray-300 focus:ring-lamaSky"
                  />
                  <span className="text-sm font-medium text-red-700">Absent</span>

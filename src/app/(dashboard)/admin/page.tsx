@@ -88,7 +88,7 @@ const AdminPage = async ({
             </p>
 
             {/* Quick Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-8">
               <Link href="/list/students" className="block">
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center gap-3">
@@ -129,7 +129,7 @@ const AdminPage = async ({
                 </div>
               </Link>
               <Link href="/list/attendance" className="block">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                       <span className="text-white text-lg font-bold">📈</span>
@@ -137,6 +137,19 @@ const AdminPage = async ({
                     <div>
                       <p className="text-white/80 text-sm">Attendance</p>
                       <p className="text-white text-2xl font-bold">{attendancePercentage}%</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              <Link href="/list/parents" className="block">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">👨‍👩‍👧‍👦</span>
+                    </div>
+                    <div>
+                      <p className="text-white/80 text-sm">Total Parents</p>
+                      <p className="text-white text-2xl font-bold">{totalParents.toLocaleString()}</p>
                     </div>
                   </div>
                 </div>

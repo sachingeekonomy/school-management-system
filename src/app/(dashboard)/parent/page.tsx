@@ -4,6 +4,7 @@ import PaymentDashboard from "@/components/PaymentDashboard";
 import prisma from "@/lib/prisma";
 import { getUserSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { Users, Calendar, CreditCard, BookOpen, GraduationCap } from "lucide-react";
 
@@ -32,16 +33,33 @@ const ParentPage = async () => {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-xl shadow-lg">
-        <div className="flex items-center space-x-4">
-          <div className="bg-white/20 p-3 rounded-lg">
-            <Users className="w-8 h-8" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="bg-white/20 p-3 rounded-lg">
+              <Users className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Parent Dashboard</h1>
+              <p className="text-purple-100">
+                Managing {students.length} student{students.length !== 1 ? 's' : ''} • Parent Portal
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">Parent Dashboard</h1>
-            <p className="text-purple-100">
-              Managing {students.length} student{students.length !== 1 ? 's' : ''} • Parent Portal
-            </p>
-          </div>
+          
+          {/* My Children Card */}
+          <Link href="/list/students" className="block">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg font-bold">👨‍👩‍👧‍👦</span>
+                </div>
+                <div>
+                  <p className="text-white/80 text-sm">My Children</p>
+                  <p className="text-white text-2xl font-bold">{students.length}</p>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
 

@@ -198,9 +198,28 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await getUserSession();
+    const role = session?.role;
+    const userId = session?.id;
+
+    let whereClause: any = {};
+
+    // Filter students based on user role
+    if (role === 'teacher' && userId) {
+      // Teachers can only see students from classes they supervise
+      whereClause.class = {
+        supervisorId: userId,
+      };
+    } else if (role === 'parent' && userId) {
+      // Parents can only see their own children
+      whereClause.parentId = userId;
+    }
+    // Admins can see all students (no filter)
+
     const students = await prisma.student.findMany({
+      where: whereClause,
       include: {
         class: {
           include: {
