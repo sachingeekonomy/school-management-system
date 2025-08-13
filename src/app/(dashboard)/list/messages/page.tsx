@@ -23,10 +23,13 @@ type MessageList = {
   senderName: string;
   senderSurname: string;
   senderRole: string;
-  receiverId: string;
-  receiverName: string;
-  receiverSurname: string;
-  receiverRole: string;
+  recipients: Array<{
+    recipientId: string;
+    recipientName: string;
+    recipientSurname: string;
+    recipientRole: string;
+    isRead: boolean;
+  }>;
 };
 
 const MessageListPage = async ({
@@ -47,6 +50,7 @@ const MessageListPage = async ({
   }
 
   console.log("User role determined:", role);
+  console.log("Current user ID:", currentUserId);
 
   const columns = [
     {
@@ -60,7 +64,7 @@ const MessageListPage = async ({
     },
     {
       header: "To",
-      accessor: "receiver",
+      accessor: "recipients",
       className: "hidden md:table-cell",
     },
     {
@@ -68,11 +72,7 @@ const MessageListPage = async ({
       accessor: "date",
       className: "hidden lg:table-cell",
     },
-    {
-      header: "Status",
-      accessor: "status",
-      className: "hidden md:table-cell",
-    },
+
     ...(role === "admin" || role === "teacher"
       ? [
           {
@@ -83,168 +83,189 @@ const MessageListPage = async ({
       : []),
   ];
 
-
-
-  const renderRow = (item: MessageList) => (
-    <tr
-      key={item.id}
-      className={`border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight ${
-        !item.isRead && item.receiverId === currentUserId ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-      }`}
-    >
-      <td className="flex items-center gap-4 p-4">
-        <div className="flex flex-col">
+  const renderRow = (item: MessageList) => {
+    return (
+      <tr
+        key={item.id}
+        className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
+      >
+        <td className="flex items-center gap-4 p-4">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold">{item.title}</h3>
+            </div>
+            <p className="text-xs text-gray-500 line-clamp-2">{item.content}</p>
+          </div>
+        </td>
+        <td className="hidden md:table-cell">
+          <div className="flex flex-col">
+            <span className="font-medium">{item.senderName + " " + item.senderSurname}</span>
+            <span className="text-xs text-gray-500">{item.senderRole}</span>
+          </div>
+        </td>
+        <td className="hidden md:table-cell">
+          <div className="flex flex-col gap-1">
+            {item.recipients.map((recipient, index) => (
+              <div key={recipient.recipientId} className="flex items-center gap-2">
+                <span className="font-medium">
+                  {recipient.recipientName + " " + recipient.recipientSurname}
+                </span>
+                <span className="text-xs text-gray-500">({recipient.recipientRole})</span>
+              </div>
+            ))}
+          </div>
+        </td>
+        <td className="hidden lg:table-cell">
+          {new Intl.DateTimeFormat("en-US", { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).format(item.date)}
+        </td>
+        <td>
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold">{item.title}</h3>
-            {!item.isRead && item.receiverId === currentUserId && (
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">NEW</span>
+            {(role === "admin" || role === "teacher") && (
+              <>
+                <FormContainer table="message" type="update" data={item} />
+                <FormContainer table="message" type="delete" id={item.id} />
+              </>
+            )}
+            {(role === "student" || role === "parent") && (
+              <MessageActions 
+                item={item} 
+                role={role} 
+                currentUserId={currentUserId!} 
+              />
             )}
           </div>
-          <p className="text-xs text-gray-500 line-clamp-2">{item.content}</p>
-        </div>
-      </td>
-      <td className="hidden md:table-cell">
-        <div className="flex flex-col">
-          <span className="font-medium">{item.senderName + " " + item.senderSurname}</span>
-          <span className="text-xs text-gray-500">{item.senderRole}</span>
-        </div>
-      </td>
-      <td className="hidden md:table-cell">
-        <div className="flex flex-col">
-          <span className="font-medium">{item.receiverName + " " + item.receiverSurname}</span>
-          <span className="text-xs text-gray-500">{item.receiverRole}</span>
-        </div>
-      </td>
-      <td className="hidden lg:table-cell">
-        {new Intl.DateTimeFormat("en-US", { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }).format(item.date)}
-      </td>
-      <td className="hidden md:table-cell">
-        <div className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
-          item.isRead ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-        }`}>
-          {item.isRead ? "✓ Read" : "● Unread"}
-        </div>
-      </td>
-      <td>
-        <div className="flex items-center gap-2">
-          {(role === "admin" || role === "teacher") && (
-            <>
-              <FormContainer table="message" type="update" data={item} />
-              <FormContainer table="message" type="delete" id={item.id} />
-            </>
-          )}
-                     {(role === "student" || role === "parent") && (
-             <MessageActions 
-               item={item} 
-               role={role} 
-               currentUserId={currentUserId!} 
-             />
-           )}
-        </div>
-      </td>
-    </tr>
-  );
+        </td>
+      </tr>
+    );
+  };
 
-  const { page, ...queryParams } = searchParams;
+  // Get pagination parameters
+  const page = parseInt(searchParams.page || "1");
+  const limit = ITEM_PER_PAGE;
+  const skip = (page - 1) * limit;
 
-  const p = page ? parseInt(page) : 1;
+  // Fetch messages based on user role
+  let data: MessageList[] = [];
+  let count = 0;
 
-  // URL PARAMS CONDITION
+  try {
+    if (role === "admin" || role === "teacher") {
+      // Admins and teachers can see all messages
+      const [messages, totalCount] = await Promise.all([
+        prisma.message.findMany({
+          include: {
+            sender: true,
+            recipients: {
+              include: {
+                recipient: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+          skip,
+          take: limit,
+        }),
+        prisma.message.count(),
+      ]);
 
-  const query: any = {};
+      data = messages.map((message) => ({
+        id: message.id,
+        title: message.title,
+        content: message.content,
+        date: message.date,
+        isRead: false, // This will be calculated per recipient
+        senderId: message.senderId,
+        senderName: message.sender.name,
+        senderSurname: message.sender.surname,
+        senderRole: message.sender.role,
+        recipients: message.recipients.map((recipient) => ({
+          recipientId: recipient.recipientId,
+          recipientName: recipient.recipient.name,
+          recipientSurname: recipient.recipient.surname,
+          recipientRole: recipient.recipient.role,
+          isRead: recipient.isRead,
+        })),
+      }));
 
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined) {
-        switch (key) {
-          case "search":
-            query.OR = [
-              { title: { contains: value, mode: "insensitive" } },
-              { content: { contains: value, mode: "insensitive" } },
-              { sender: { name: { contains: value, mode: "insensitive" } } },
-              { sender: { surname: { contains: value, mode: "insensitive" } } },
-              { receiver: { name: { contains: value, mode: "insensitive" } } },
-              { receiver: { surname: { contains: value, mode: "insensitive" } } },
-            ];
-            break;
-          default:
-            break;
-        }
-      }
+             count = totalCount;
+    } else {
+      // Students and parents can only see messages where they are recipients
+      const [userMessages, totalCount] = await Promise.all([
+        prisma.messageRecipient.findMany({
+          where: {
+            recipientId: currentUserId!,
+          },
+          include: {
+            message: {
+              include: {
+                sender: true,
+                recipients: {
+                  include: {
+                    recipient: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            message: {
+              date: "desc",
+            },
+          },
+          skip,
+          take: limit,
+        }),
+        prisma.messageRecipient.count({
+          where: {
+            recipientId: currentUserId!,
+          },
+        }),
+      ]);
+
+      data = userMessages.map((userMessage) => ({
+        id: userMessage.message.id,
+        title: userMessage.message.title,
+        content: userMessage.message.content,
+        date: userMessage.message.date,
+        isRead: userMessage.isRead,
+        senderId: userMessage.message.senderId,
+        senderName: userMessage.message.sender.name,
+        senderSurname: userMessage.message.sender.surname,
+        senderRole: userMessage.message.sender.role,
+        recipients: userMessage.message.recipients.map((recipient) => ({
+          recipientId: recipient.recipientId,
+          recipientName: recipient.recipient.name,
+          recipientSurname: recipient.recipient.surname,
+          recipientRole: recipient.recipient.role,
+          isRead: recipient.isRead,
+        })),
+      }));
+
+             count = totalCount;
     }
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    // Keep data as empty array if there's an error
   }
 
-  // ROLE CONDITIONS - Users can see messages they sent or received
-  query.OR = [
-    { senderId: currentUserId! },
-    { receiverId: currentUserId! },
-  ];
-
-  const [dataRes, count] = await prisma.$transaction([
-    prisma.message.findMany({
-      where: query,
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            surname: true,
-            role: true,
-          },
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            surname: true,
-            role: true,
-          },
-        },
-      },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-      orderBy: { id: 'desc' },
-    }),
-    prisma.message.count({ where: query }),
-  ]);
-
-  const data = dataRes.map((item: any) => ({
-    id: item.id,
-    title: item.title,
-    content: item.content,
-    date: item.date,
-    isRead: item.isRead,
-    senderId: item.sender.id,
-    senderName: item.sender.name,
-    senderSurname: item.sender.surname,
-    senderRole: item.sender.role,
-    receiverId: item.receiver.id,
-    receiverName: item.receiver.name,
-    receiverSurname: item.receiver.surname,
-    receiverRole: item.receiver.role,
-  }));
-
-  // Calculate unread count for current user
-  const unreadCount = data.filter((item: any) => !item.isRead && item.receiverId === currentUserId).length;
+  console.log("Fetched messages count:", data.length);
+  console.log("Total count:", count);
 
   return (
     <div className="bg-white p-4 flex-1  w-full h-full">
       {/* TOP */}
       <div className="flex items-center justify-between">
-        <h1 className="hidden md:block text-lg font-semibold">
-          {role === "admin" || role === "teacher" ? "All Messages" : "My Messages"}
-          {unreadCount > 0 && (
-            <span className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded-full">
-              {unreadCount} unread
-            </span>
-          )}
-        </h1>
+                 <h1 className="hidden md:block text-lg font-semibold">
+           {role === "admin" || role === "teacher" ? "All Messages" : "My Messages"}
+         </h1>
         {/* Debug info - remove this after testing */}
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
@@ -275,9 +296,19 @@ const MessageListPage = async ({
         </div>
       </div>
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={data} />
-      {/* PAGINATION */}
-      <Pagination page={p} count={count} />
+      {data.length > 0 ? (
+        <>
+          <Table columns={columns} renderRow={renderRow} data={data} />
+          <Pagination page={page} count={count} />
+        </>
+      ) : (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-gray-500 mb-4">No messages found.</p>
+            <p className="text-sm text-gray-400">Try creating a new message to get started.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

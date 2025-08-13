@@ -40,6 +40,10 @@ console.log("User role determined:", role);
 
 const columns = [
   {
+    header: "Exam Title",
+    accessor: "title",
+  },
+  {
     header: "Subject Name",
     accessor: "name",
   },
@@ -72,7 +76,8 @@ const renderRow = (item: ExamList) => (
     key={item.id}
     className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
   >
-    <td className="flex items-center gap-4 p-4">{item.lesson.subject.name}</td>
+    <td className="flex items-center gap-4 p-4">{item.title}</td>
+    <td>{item.lesson.subject.name}</td>
     <td>{item.lesson.class.name}</td>
     <td className="hidden md:table-cell">
       {item.lesson.teacher.name + " " + item.lesson.teacher.surname}

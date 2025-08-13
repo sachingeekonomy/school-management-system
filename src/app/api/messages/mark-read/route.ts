@@ -23,14 +23,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update the message to mark it as read
-    const updatedMessage = await prisma.message.update({
+    // Update the MessageRecipient to mark it as read for the current user
+    const updatedRecipient = await prisma.messageRecipient.update({
       where: {
-        id: messageId,
-        receiverId: userId, // Only allow marking messages as read if user is the receiver
+        messageId_recipientId: {
+          messageId: messageId,
+          recipientId: userId,
+        },
       },
       data: {
         isRead: true,
+        readAt: new Date(),
       },
     });
 

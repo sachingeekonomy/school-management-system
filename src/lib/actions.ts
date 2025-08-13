@@ -1432,33 +1432,42 @@ export const createMessage = async (
     // Ensure sender exists in User table
     await ensureUserExists(userId, senderRole);
 
-    // Determine receiver role and ensure receiver exists in User table
-    let receiverRole = "admin"; // default
-    if (data.receiverId.startsWith("teacher_")) {
-      receiverRole = "teacher";
-    } else if (data.receiverId.startsWith("parent_")) {
-      receiverRole = "parent";
-    } else if (data.receiverId.includes("admin")) {
-      receiverRole = "admin";
-    } else {
-      // Check if it's a student (Clerk ID)
-      const student = await prisma.student.findUnique({
-        where: { id: data.receiverId },
-        select: { id: true }
-      });
-      if (student) {
-        receiverRole = "student";
-      }
-    }
-
-    await ensureUserExists(data.receiverId, receiverRole);
+    // Use recipientIds if available, otherwise fall back to receiverId
+    const recipientIds = data.recipientIds || [data.receiverId];
     
+    // Ensure all recipients exist in User table
+    for (const recipientId of recipientIds) {
+      let receiverRole = "admin"; // default
+      if (recipientId.startsWith("teacher_")) {
+        receiverRole = "teacher";
+      } else if (recipientId.startsWith("parent_")) {
+        receiverRole = "parent";
+      } else if (recipientId.includes("admin")) {
+        receiverRole = "admin";
+      } else {
+        // Check if it's a student (Clerk ID)
+        const student = await prisma.student.findUnique({
+          where: { id: recipientId },
+          select: { id: true }
+        });
+        if (student) {
+          receiverRole = "student";
+        }
+      }
+      await ensureUserExists(recipientId, receiverRole);
+    }
+    
+    // Create message with multiple recipients
     await prisma.message.create({
       data: {
         title: data.title,
         content: data.content,
         senderId: userId,
-        receiverId: data.receiverId,
+        recipients: {
+          create: recipientIds.map(recipientId => ({
+            recipientId: recipientId,
+          }))
+        }
       },
     });
 
@@ -1480,6 +1489,10 @@ export const updateMessage = async (
   try {
     console.log("Updating message with data:", data);
     
+    // Use recipientIds if available, otherwise fall back to receiverId
+    const recipientIds = data.recipientIds || [data.receiverId];
+    
+    // Update message content
     await prisma.message.update({
       where: {
         id: data.id,
@@ -1487,9 +1500,26 @@ export const updateMessage = async (
       data: {
         title: data.title,
         content: data.content,
-        receiverId: data.receiverId,
       },
     });
+
+    // Update recipients
+    if (recipientIds.length > 0) {
+      // Delete existing recipients
+      await prisma.messageRecipient.deleteMany({
+        where: {
+          messageId: data.id,
+        },
+      });
+
+      // Create new recipients
+      await prisma.messageRecipient.createMany({
+        data: recipientIds.map(recipientId => ({
+          messageId: data.id,
+          recipientId: recipientId,
+        })),
+      });
+    }
 
     console.log("Message updated successfully");
     return { success: true, error: false };

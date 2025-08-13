@@ -5,8 +5,10 @@ import { useState } from "react";
 type MessageActionsProps = {
   item: {
     id: number;
-    isRead: boolean;
-    receiverId: string;
+    recipients: Array<{
+      recipientId: string;
+      isRead: boolean;
+    }>;
   };
   role: string;
   currentUserId: string;
@@ -14,6 +16,10 @@ type MessageActionsProps = {
 
 const MessageActions = ({ item, role, currentUserId }: MessageActionsProps) => {
   const [isMarking, setIsMarking] = useState(false);
+
+  // Find if current user is a recipient and if the message is unread for them
+  const userRecipient = item.recipients.find(r => r.recipientId === currentUserId);
+  const isUnreadForUser = userRecipient && !userRecipient.isRead;
 
   const handleMarkAsRead = async () => {
     if (isMarking) return;
@@ -40,7 +46,7 @@ const MessageActions = ({ item, role, currentUserId }: MessageActionsProps) => {
 
   return (
     <div className="flex items-center gap-2">
-      {(role === "student" || role === "parent") && !item.isRead && item.receiverId === currentUserId && (
+      {/* {(role === "student" || role === "parent") && isUnreadForUser && (
         <button
           onClick={handleMarkAsRead}
           disabled={isMarking}
@@ -48,7 +54,7 @@ const MessageActions = ({ item, role, currentUserId }: MessageActionsProps) => {
         >
           {isMarking ? "Marking..." : "Mark as Read"}
         </button>
-      )}
+      )} */}
     </div>
   );
 };

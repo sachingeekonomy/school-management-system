@@ -145,7 +145,8 @@ export const messageSchema = z.object({
   id: z.coerce.number().optional(),
   title: z.string().min(1, { message: "Title is required!" }),
   content: z.string().min(1, { message: "Content is required!" }),
-  receiverId: z.string().min(1, { message: "Receiver is required!" }),
+  receiverId: z.string().optional(), // Keep for backward compatibility
+  recipientIds: z.array(z.string()).min(1, { message: "At least one recipient is required!" }),
 });
 
 export type MessageSchema = z.infer<typeof messageSchema>;

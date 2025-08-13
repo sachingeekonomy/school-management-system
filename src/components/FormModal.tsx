@@ -241,6 +241,7 @@ const FormModal = ({
         teacher: ["subjects"],
         assignment: ["lessons"],
         attendance: ["students", "lessons"],
+        message: ["users"],
       };
 
       const requiredData = dataMap[table] || [];
@@ -384,6 +385,21 @@ const FormModal = ({
         } catch (error) {
           console.error("Error fetching assignments:", error);
           fetchedData.assignments = [];
+        }
+      }
+
+      // Fetch users
+      if (requiredData.includes("users")) {
+        try {
+          const usersResponse = await fetch("/api/users");
+          if (usersResponse.ok) {
+            fetchedData.users = await usersResponse.json();
+          } else {
+            fetchedData.users = [];
+          }
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          fetchedData.users = [];
         }
       }
 
