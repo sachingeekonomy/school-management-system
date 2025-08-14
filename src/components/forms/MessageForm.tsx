@@ -214,7 +214,7 @@ const MessageForm = ({
                     </div>
                   ) : searchQuery ? (
                     <div className="p-4 text-center text-gray-500">
-                      No {selectedRole}s found matching "{searchQuery}"
+                      No {selectedRole}s found matching &quot;{searchQuery}&quot;
                     </div>
                   ) : (
                     <div className="p-4 text-center text-gray-500">

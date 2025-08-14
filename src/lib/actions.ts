@@ -1515,7 +1515,7 @@ export const updateMessage = async (
       // Create new recipients
       await prisma.messageRecipient.createMany({
         data: recipientIds.map(recipientId => ({
-          messageId: data.id,
+          messageId: data.id!,
           recipientId: recipientId,
         })),
       });
@@ -1643,13 +1643,14 @@ export const markMessageAsRead = async (
       return { success: false, error: true, message: "Authentication required" };
     }
     
-    await prisma.message.update({
+    await prisma.messageRecipient.updateMany({
       where: {
-        id: data.messageId,
-        receiverId: userId, // Only allow marking messages as read if user is the receiver
+        messageId: data.messageId,
+        recipientId: userId, // Only allow marking messages as read if user is the recipient
       },
       data: {
         isRead: true,
+        readAt: new Date(),
       },
     });
 

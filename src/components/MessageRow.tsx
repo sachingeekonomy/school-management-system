@@ -18,6 +18,10 @@ type MessageRowProps = {
     receiverName: string;
     receiverSurname: string;
     receiverRole: string;
+    recipients: Array<{
+      recipientId: string;
+      isRead: boolean;
+    }>;
   };
   role: string;
   currentUserId: string;

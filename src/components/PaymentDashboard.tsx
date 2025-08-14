@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { CreditCard, DollarSign, AlertTriangle, CheckCircle, Clock, Calendar, TrendingUp } from "lucide-react";
 
@@ -58,11 +58,7 @@ const PaymentDashboard = ({ studentId, userRole }: PaymentDashboardProps) => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [filter, setFilter] = useState("ALL");
 
-  useEffect(() => {
-    fetchPayments();
-  }, [studentId, filter]);
-
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       const statusParam = filter !== "ALL" ? `&status=${filter}` : "";
       const response = await fetch(`/api/payments/student/${studentId}?${statusParam}`);
@@ -84,7 +80,12 @@ const PaymentDashboard = ({ studentId, userRole }: PaymentDashboardProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId, filter]);
+
+  // Fetch payments when component mounts or dependencies change
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments]);
 
   const handlePayment = async (payment: Payment) => {
     if (payment.status === "PAID") {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 
@@ -33,7 +33,7 @@ const LogoutPage = () => {
     fetchUserData();
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     setIsLoggingOut(true);
     try {
       const response = await fetch('/api/auth/logout', {
@@ -55,7 +55,7 @@ const LogoutPage = () => {
       toast.error('An error occurred during logout');
       setIsLoggingOut(false);
     }
-  };
+  }, [router]);
 
   const handleCancel = () => {
     router.back(); // Go back to previous page
@@ -68,7 +68,7 @@ const LogoutPage = () => {
     if (urlParams.get('auto') === 'true') {
       handleLogout();
     }
-  }, []);
+  }, [handleLogout]);
 
   return (
     <div className="flex-1 p-4 flex items-center justify-center">

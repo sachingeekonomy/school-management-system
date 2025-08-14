@@ -19,7 +19,7 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useCallback } from "react";
 import { useFormState } from "react-dom";
 import { toast } from "react-toastify";
 import { FormContainerProps } from "./FormContainer";
@@ -221,14 +221,7 @@ const FormModal = ({
   const [relatedData, setRelatedData] = useState<any>(initialRelatedData || {});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch related data when form opens
-  useEffect(() => {
-    if (open && (type === "create" || type === "update")) {
-      fetchRelatedData();
-    }
-  }, [open, table, type]);
-
-  const fetchRelatedData = async () => {
+  const fetchRelatedData = useCallback(async () => {
     setIsLoading(true);
     try {
       const dataMap: { [key: string]: string[] } = {
@@ -411,7 +404,14 @@ const FormModal = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [table]);
+
+  // Fetch related data when form opens
+  useEffect(() => {
+    if (open && (type === "create" || type === "update")) {
+      fetchRelatedData();
+    }
+  }, [open, table, type, fetchRelatedData]);
 
   const Form = () => {
     const [state, formAction] = useFormState(deleteActionMap[table], {

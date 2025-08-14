@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, memo } from "react";
+import Image from "next/image";
 import FormModal from "./FormModal";
 import PaymentForm from "./forms/PaymentForm";
 
@@ -49,7 +50,7 @@ const FormContainer = memo(({ table, type, data, id }: FormContainerProps) => {
               : "bg-red-500 hover:bg-red-600"
           }`}
         >
-          <img
+          <Image
             src={
               type === "create"
                 ? "/create.png"

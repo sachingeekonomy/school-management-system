@@ -18,38 +18,38 @@ export async function POST(request: NextRequest) {
       {
         studentId: student.id,
         amount: 5000,
-        paymentType: "TUITION",
-        paymentMethod: "ONLINE",
+        paymentType: "TUITION" as const,
+        paymentMethod: "ONLINE" as const,
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         description: "Monthly tuition fee for January 2024",
-        status: "PENDING",
+        status: "PENDING" as const,
       },
       {
         studentId: student.id,
         amount: 2500,
-        paymentType: "EXAM",
-        paymentMethod: "CASH",
+        paymentType: "EXAM" as const,
+        paymentMethod: "CASH" as const,
         dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
         description: "Mid-term examination fee",
-        status: "OVERDUE",
+        status: "OVERDUE" as const,
       },
       {
         studentId: student.id,
         amount: 1000,
-        paymentType: "TRANSPORT",
-        paymentMethod: "BANK_TRANSFER",
+        paymentType: "TRANSPORT" as const,
+        paymentMethod: "BANK_TRANSFER" as const,
         dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
         description: "Transport fee for February 2024",
-        status: "PENDING",
+        status: "PENDING" as const,
       },
       {
         studentId: student.id,
         amount: 3000,
-        paymentType: "TUITION",
-        paymentMethod: "ONLINE",
+        paymentType: "TUITION" as const,
+        paymentMethod: "ONLINE" as const,
         dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
         description: "Monthly tuition fee for December 2023",
-        status: "PAID",
+        status: "PAID" as const,
       },
     ];
 
