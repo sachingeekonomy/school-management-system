@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserSession } from "@/lib/auth";
 
+// Prevent build-time execution
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch all announcements with role-based filtering
 export async function GET(request: NextRequest) {
   try {
